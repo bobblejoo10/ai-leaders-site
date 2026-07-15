@@ -231,7 +231,7 @@
   var storeSubscribed = false;
 
   function pageSize() {
-    return 6;
+    return global.matchMedia && global.matchMedia('(max-width:540px)').matches ? 3 : 6;
   }
 
   function allCoursesForState() {
