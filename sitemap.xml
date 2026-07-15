@@ -7,55 +7,55 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://newaileaders.co.kr/html/about.html</loc>
+    <loc>https://newaileaders.co.kr/about/</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://newaileaders.co.kr/html/course-free.html</loc>
+    <loc>https://newaileaders.co.kr/course-free/</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://newaileaders.co.kr/html/course-paid.html</loc>
+    <loc>https://newaileaders.co.kr/course-paid/</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://newaileaders.co.kr/html/course-corporate.html</loc>
+    <loc>https://newaileaders.co.kr/course-corporate/</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://newaileaders.co.kr/html/corporate.html</loc>
+    <loc>https://newaileaders.co.kr/corporate/</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://newaileaders.co.kr/html/reviews.html</loc>
+    <loc>https://newaileaders.co.kr/reviews/</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://newaileaders.co.kr/html/faq.html</loc>
+    <loc>https://newaileaders.co.kr/faq/</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://newaileaders.co.kr/html/instructor.html</loc>
+    <loc>https://newaileaders.co.kr/instructor/</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://newaileaders.co.kr/html/instructor-apply.html</loc>
+    <loc>https://newaileaders.co.kr/instructor-apply/</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

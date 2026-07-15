@@ -1,13 +1,14 @@
 User-agent: *
 Allow: /
 
-Disallow: /html/admin-applications.html
-Disallow: /html/admin-corporate-inquiries.html
-Disallow: /html/admin-courses.html
-Disallow: /html/admin-dashboard.html
-Disallow: /html/admin-instructor-applications.html
-Disallow: /html/admin-site-content.html
-Disallow: /html/admin-update-log.html
+Disallow: /admin-applications/
+Disallow: /admin-corporate-inquiries/
+Disallow: /admin-courses/
+Disallow: /admin-dashboard/
+Disallow: /admin-instructor-applications/
+Disallow: /admin-site-content/
+Disallow: /admin-update-log/
+Disallow: /html/
 Disallow: /supabase/
 Disallow: /tools/
 
