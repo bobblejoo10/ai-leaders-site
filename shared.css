@@ -459,19 +459,19 @@ h3.sh {
   }
   .nav.open .logo-text { color: var(--ink); }
   .nav.open .logo-dot  { color: var(--brand); }
-  .nav.open .container { position: relative; flex-direction: column; align-items: stretch; padding-top: 18px; padding-bottom: 14px; }
-  .nav.open .hamb { position: absolute; top: 13px; right: 24px; z-index: 2; color: var(--ink); }
+  .nav.open .container { position: relative; flex-direction: column; align-items: stretch; padding-top: 14px; padding-bottom: 14px; }
+  .nav.open .hamb { position: absolute; top: 14px; right: 24px; z-index: 2; color: var(--ink); }
   .nav.open .menu { display: flex; flex-direction: column; align-items: stretch; gap: 2px; margin-top: 16px; }
-  .nav.open .nav-link { padding: 12px 8px; font-size: 18px; justify-content: space-between; }
+  .nav.open .nav-link { padding: 13px 8px; font-size: 16px; border-bottom: 1px solid var(--line); justify-content: space-between; }
   .nav.open .dropdown {
     display: none; position: static; opacity: 1; visibility: visible; transform: none;
-    box-shadow: none; border: none; padding: 0 0 8px 12px; min-width: 0;
+    box-shadow: none; border: none; padding: 4px 0 8px 16px; min-width: 0;
   }
   .nav.open .nav-item .ar { transform: none; }
   .nav.open .nav-item.sub-open > .dropdown { display: block; }
   .nav.open .nav-item.sub-open > .nav-link .ar { transform: rotate(180deg); }
-  .nav.open .nav-cta { display: none; }
-  .nav.open .nav-cta .btn { display: none; }
+  .nav.open .nav-cta { display: flex; }
+  .nav.open .nav-cta .btn { display: flex; width: 100%; margin-top: 12px; height: 50px; }
   .nav.open .brand { order: -1; padding-right: 58px; }
   .g4 { grid-template-columns: repeat(2, 1fr); }
   .g3 { grid-template-columns: repeat(2, 1fr); }
@@ -532,6 +532,7 @@ h3.sh {
 @media (max-width: 420px) {
   .g4 { grid-template-columns: 1fr; }
   .foot-cols { grid-template-columns: 1fr; }
+  .nav.open .hamb { right: 18px; }
 }
 
 .course-pager {
@@ -596,7 +597,7 @@ h3.sh {
 .nav.scrolled .brand .logo-ink{ display:block; }
 .nav.open .brand .logo-white{ display:none; }
 .nav.open .brand .logo-ink{ display:block; }
-@media (max-width:640px){ .nav .brand .logo{ width:126px; height:auto; } }
+@media (max-width:640px){ .nav .brand .logo{ width:132px; height:auto; } }
 
 
 /* ===== 메인 홈 푸터 디자인 (서브페이지 공통) ===== */
