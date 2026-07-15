@@ -8,6 +8,14 @@
 <title>AI리더스협회</title>
 <link crossorigin="" href="https://cdn.jsdelivr.net" rel="preconnect"/>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" rel="stylesheet"/>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-17060350229"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-17060350229');
+</script>
 <style>
   *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
   :root{
@@ -1944,7 +1952,7 @@ to{transform:scale(1.12);}
 <!-- ============ GNB ============ -->
 <nav class="nav" id="nav">
 <div class="container">
-<a aria-label="AI 리더스 협회 홈" class="brand" href="index.html">
+<a aria-label="AI 리더스 협회 홈" class="brand" href="../">
 <img alt="AI 리더스 협회" class="logo logo-white" src="../images/logo-white.png"/>
 <img alt="AI 리더스 협회" class="logo logo-ink" src="../images/logo-ink.png"/>
 </a>
@@ -4079,9 +4087,16 @@ window.initFeaturedCourseCarousel();
 (function(){
   var qb = document.querySelector(".quick-bar");
   if(!qb) return;
-  function upd(){ qb.classList.toggle("qb-show", window.scrollY > 260); }
+  var hero = document.getElementById("hero");
+  function isHeroVisible(){
+    if(!hero) return false;
+    var rect = hero.getBoundingClientRect();
+    return rect.bottom > 0 && rect.top < window.innerHeight;
+  }
+  function upd(){ qb.classList.toggle("qb-show", window.scrollY > 260 && !isHeroVisible()); }
   upd();
   window.addEventListener("scroll", upd, { passive:true });
+  window.addEventListener("resize", upd, { passive:true });
 })();
 </script>
 <script src="assets/mobile-nav.js"></script>
