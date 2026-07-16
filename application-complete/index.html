@@ -99,6 +99,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   if (location.search && history.replaceState) {
     history.replaceState(null, document.title, '/application-complete/');
   }
+  if (typeof window.fbq === 'function' && !window.fbq.__aiLeadersLeadGuard) {
+    var originalFbq = window.fbq;
+    var leadTracked = false;
+    var guardedFbq = function(){
+      if (arguments[0] === 'track' && arguments[1] === 'Lead') {
+        if (leadTracked) return;
+        leadTracked = true;
+      }
+      return originalFbq.apply(this, arguments);
+    };
+    for (var key in originalFbq) {
+      try { guardedFbq[key] = originalFbq[key]; } catch (error) {}
+    }
+    guardedFbq.__aiLeadersLeadGuard = true;
+    window.fbq = guardedFbq;
+  }
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({
     event: 'lecture_application_complete',
