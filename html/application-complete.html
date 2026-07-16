@@ -23,7 +23,7 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
       if (initialized[name]) return;
       initialized[name] = true;
     }
-    if (command === 'track' && (name === 'PageView' || name === 'Lead')) {
+    if (command === 'track' && (name === 'PageView' || name === 'Lead' || name === 'Purchase')) {
       if (tracked[name]) return;
       tracked[name] = true;
     }
@@ -42,13 +42,13 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=1509286323738952&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
-<!-- Meta Pixel Lead Event -->
+<!-- Meta Pixel Purchase Event -->
 <script>
 if (typeof fbq === 'function') {
-  fbq('track', 'Lead');
+  fbq('track', 'Purchase');
 }
 </script>
-<!-- End Meta Pixel Lead Event -->
+<!-- End Meta Pixel Purchase Event -->
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],

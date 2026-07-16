@@ -25,7 +25,7 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
       if (initialized[name]) return;
       initialized[name] = true;
     }
-    if (command === 'track' && (name === 'PageView' || name === 'Lead')) {
+    if (command === 'track' && (name === 'PageView' || name === 'Lead' || name === 'Purchase')) {
       if (tracked[name]) return;
       tracked[name] = true;
     }
