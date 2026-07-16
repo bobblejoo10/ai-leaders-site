@@ -23,11 +23,16 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
       if (initialized[name]) return;
       initialized[name] = true;
     }
-    if (command === 'track' && (name === 'PageView' || name === 'Lead' || name === 'Purchase')) {
+    if (command === 'track' && (name === 'PageView' || name === 'Lead' || name === 'Purchase' || name === 'ViewContent' || name === 'InitiateCheckout')) {
       if (tracked[name]) return;
       tracked[name] = true;
     }
     return originalFbq.apply(this, arguments);
+  };
+  window.aiLeadersTrackMeta = function(eventName, params) {
+    if (typeof window.fbq === 'function') {
+      window.fbq('track', eventName, params || {});
+    }
   };
   for (var key in originalFbq) {
     try { guardedFbq[key] = originalFbq[key]; } catch (error) {}
@@ -37,6 +42,19 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 })();
 fbq('init', '1509286323738952');
 fbq('track', 'PageView');
+(function(){
+  var path = window.location.pathname || '/';
+  var isCompletion = path.indexOf('/application-complete') === 0;
+  var isCourseDetail = path.indexOf('/course-detail') === 0 || path.indexOf('/course/') === 0;
+  if (!isCompletion && !isCourseDetail && typeof window.aiLeadersTrackMeta === 'function') {
+    window.aiLeadersTrackMeta('ViewContent', {
+      content_name: document.title || 'AI리더스협회 랜딩',
+      content_category: 'Landing',
+      content_type: 'website',
+      page_path: path
+    });
+  }
+})();
 </script>
 <noscript><img height="1" width="1" style="display:none"
 src="https://www.facebook.com/tr?id=1509286323738952&ev=PageView&noscript=1"
