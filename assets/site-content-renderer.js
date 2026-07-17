@@ -291,6 +291,21 @@
       + ' decoding="async"' + (eager ? ' fetchpriority="high"' : '') + '>';
   }
 
+  function normalizeManagedLink(value, fallback) {
+    var raw = typeof value === 'string' ? value.trim() : '';
+    if (!raw) return fallback;
+
+    if (/^(?:https?:|mailto:|tel:|#|\/\/)/i.test(raw)) return raw;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) return fallback;
+
+    var legacyPage = raw.match(/^\/?(?:html\/)?([a-z0-9-]+)\.html([?#].*)?$/i);
+    if (!legacyPage) return raw;
+
+    var pageName = legacyPage[1].toLowerCase();
+    var suffix = legacyPage[2] || '';
+    return pageName === 'index' ? '/' + suffix : '/' + pageName + '/' + suffix;
+  }
+
   async function renderHero() {
     var hero = document.getElementById('hero');
     if (!hero) return;
@@ -299,6 +314,8 @@
     var title = hero.querySelector('h1');
     var subtitle = hero.querySelector('.sub');
     var links = hero.querySelectorAll('a.btn, .btn a, .hero-cta a, .hero-actions a');
+    var primaryUrlFallback = links[0] ? (links[0].getAttribute('href') || '/course-free/') : '/course-free/';
+    var secondaryUrlFallback = links[1] ? (links[1].getAttribute('href') || '/course-paid/') : '/course-paid/';
     var slides = document.getElementById('slides');
     var hasManagedMedia = banners.some(function (banner) {
       return banner.desktopImage || banner.mobileImage || banner.videoUrl;
@@ -311,9 +328,9 @@
       if (subtitle && item.subtitle) subtitle.textContent = item.subtitle;
 
       if (links[0] && item.primaryLabel) links[0].textContent = item.primaryLabel;
-      if (links[0] && item.primaryUrl) links[0].setAttribute('href', item.primaryUrl);
+      if (links[0]) links[0].setAttribute('href', normalizeManagedLink(item.primaryUrl, primaryUrlFallback));
       if (links[1] && item.secondaryLabel) links[1].textContent = item.secondaryLabel;
-      if (links[1] && item.secondaryUrl) links[1].setAttribute('href', item.secondaryUrl);
+      if (links[1]) links[1].setAttribute('href', normalizeManagedLink(item.secondaryUrl, secondaryUrlFallback));
 
       if (shouldRenderManagedSlides) {
         slides.querySelectorAll('.slide').forEach(function (slide, slideIndex) {
