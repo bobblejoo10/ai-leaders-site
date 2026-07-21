@@ -183,6 +183,29 @@
     });
   }
 
+  function isPublicCourseListing() {
+    var path = String(global.location && global.location.pathname || '/').replace(/\/+$/, '') || '/';
+    return path === '/' || path === '/index.html' || path === '/course-free' || path === '/course-paid';
+  }
+
+  function usableThumbnail(value) {
+    var src = String(value || '').trim();
+    return src && !/^data:image\//i.test(src) ? src : '';
+  }
+
+  function courseThumbnail(course) {
+    var direct = usableThumbnail(course && course.thumbImg);
+    if (direct) return direct;
+
+    var label = [course && course.title, course && course.category, course && course.summary]
+      .filter(Boolean)
+      .join(' ');
+    if (/클로드|claude/i.test(label)) return '/images/course-thumb-claude.webp';
+    if (/제미나이|gemini/i.test(label)) return '/images/course-thumb-gemini.webp';
+    if (course && course.type === 'paid') return '/images/course-thumb-paid.webp';
+    return '/images/course-thumb-ai.webp';
+  }
+
   function toRow(course) {
     var normalized = normalizeCourse(course);
     var applicationNotice = Object.assign({}, normalized.applicationNotice || {}, {
@@ -335,7 +358,34 @@
     if (!api || !api.hasConfig()) {
       throw new Error(api ? api.defaultErrorMessage : '데이터를 불러올 수 없습니다.');
     }
-    var rows = await api.selectRows('courses', { select: '*' });
+
+    if (!isPublicCourseListing()) {
+      var fullRows = await api.selectRows('courses', { select: '*' });
+      return cacheFromCourses(fullRows.map(fromRow));
+    }
+
+    var cardFields = [
+      'id', 'type', 'status', 'title', 'category', 'region', 'location', 'address',
+      'event_date', 'event_time', 'apply_start_at', 'apply_end_at', 'instructor',
+      'applicant_count', 'price', 'price_orig', 'badges', 'summary', 'application_notice'
+    ].join(',');
+    var thumbnailPromise = api.selectRows('courses', {
+      select: 'id,thumb_img',
+      operators: { thumb_img: 'not.like.data:image/%' }
+    }).catch(function () { return []; });
+    var result = await Promise.all([
+      api.selectRows('courses', { select: cardFields }),
+      thumbnailPromise
+    ]);
+    var rows = result[0];
+    var thumbnailsById = {};
+    result[1].forEach(function (item) {
+      var thumbnail = usableThumbnail(item.thumb_img);
+      if (thumbnail) thumbnailsById[item.id] = thumbnail;
+    });
+    rows.forEach(function (row) {
+      row.thumb_img = thumbnailsById[row.id] || null;
+    });
     return cacheFromCourses(rows.map(fromRow));
   }
 
@@ -493,6 +543,7 @@
     getCoursePublicCode: getCoursePublicCode,
     findCourseByPublicCode: findCourseByPublicCode,
     courseDetailUrl: courseDetailUrl,
+    courseThumbnail: courseThumbnail,
     normalizePublicCode: normalizePublicCode,
     stablePublicCode: stablePublicCode,
     getFeaturedCourses: getFeaturedCourses,

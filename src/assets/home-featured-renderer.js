@@ -50,9 +50,12 @@
     }).join('') + '</div>';
   }
 
-  function cardMarkup(course) {
+  function cardMarkup(course, index) {
     var s = store();
-    var thumb = course.thumbImg || '/images/logo-ink.png';
+    var thumb = typeof s.courseThumbnail === 'function' ? s.courseThumbnail(course) : (course.thumbImg || '/images/logo-ink.png');
+    var priority = index === 0
+      ? ' loading="eager" fetchpriority="high"'
+      : ' loading="lazy"';
     var fallbackCode = global.AiLeadersUtils && global.AiLeadersUtils.stablePublicCode
       ? global.AiLeadersUtils.stablePublicCode(course.id)
       : course.id;
@@ -62,7 +65,7 @@
     return ''
       + '<a class="course-card" href="' + s.escapeHtml(href) + '">'
       + '<div class="course-thumb">'
-      + '<img alt="' + s.escapeHtml(course.title || '\uAC15\uC5F0 \uC774\uBBF8\uC9C0') + '" src="' + s.escapeHtml(thumb) + '"/>'
+      + '<img alt="' + s.escapeHtml(course.title || '\uAC15\uC5F0 \uC774\uBBF8\uC9C0') + '" src="' + s.escapeHtml(thumb) + '" width="720" height="720" decoding="async"' + priority + '/>'
       + '</div>'
       + '<div class="course-body">'
       + '<h3>' + s.escapeHtml(course.title || '\uAC15\uC5F0\uBA85 \uBBF8\uC815') + '</h3>'
@@ -76,7 +79,7 @@
   function emptyMarkup() {
     return ''
       + '<a class="course-card" href="/course-free/">'
-      + '<div class="course-thumb"><img alt="\uAC15\uC5F0 \uC900\uBE44 \uC911" src="/images/logo-ink.png"/></div>'
+      + '<div class="course-thumb"><img alt="\uAC15\uC5F0 \uC900\uBE44 \uC911" src="/images/logo-ink.png" width="720" height="720" decoding="async"/></div>'
       + '<div class="course-body">'
       + '<h3>\uC2E0\uCCAD \uAC00\uB2A5\uD55C \uB300\uD45C \uAC15\uC5F0\uC744 \uC900\uBE44 \uC911\uC785\uB2C8\uB2E4</h3>'
       + '<p class="price">\uAC15\uC5F0 \uC900\uBE44 \uC911</p>'
@@ -118,7 +121,6 @@
       return;
     }
     if (s.hasLoaded && !s.hasLoaded()) {
-      track.innerHTML = '';
       return;
     }
     var courses = s.getFeaturedCourses(s.getCourses(), opts.limit || 8);

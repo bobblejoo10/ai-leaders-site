@@ -52,7 +52,7 @@
 
   function closedOverlayMarkup(course) {
     if (!isPeriodExpired(course)) return '';
-    return '<img class="course-closed-overlay" src="/images/course-closed-overlay.png" alt="" aria-hidden="true"/>';
+    return '<img class="course-closed-overlay" src="/images/course-closed-overlay.png" alt="" aria-hidden="true" width="1080" height="1080" loading="lazy" decoding="async"/>';
   }
 
   function sortByRemainingPeriod(a, b) {
@@ -195,12 +195,13 @@
       : '';
   }
 
-  function cardMarkup(course) {
+  function cardMarkup(course, index) {
     var s = store();
     var remaining = s.remainingSeats(course);
     var status = statusText(course);
     var muted = /마감|완료|비공개/.test(status) ? ' style="color:#555;"' : '';
-    var thumb = course.thumbImg || '/images/logo-ink.png';
+    var thumb = typeof s.courseThumbnail === 'function' ? s.courseThumbnail(course) : (course.thumbImg || '/images/logo-ink.png');
+    var loading = index === 0 ? 'eager' : 'lazy';
     var fallbackCode = global.AiLeadersUtils && global.AiLeadersUtils.stablePublicCode
       ? global.AiLeadersUtils.stablePublicCode(course.id)
       : course.id;
@@ -212,7 +213,7 @@
       + '<a href="' + s.escapeHtml(href) + '" class="card-link">'
       + '<div class="course-thumb" style="background:#e8f1ff;">'
       + lowSeatsBadge(course, remaining)
-      + '<img src="' + s.escapeHtml(thumb) + '" alt="' + s.escapeHtml(course.title || '강연 이미지') + '"/>'
+      + '<img src="' + s.escapeHtml(thumb) + '" alt="' + s.escapeHtml(course.title || '강연 이미지') + '" width="720" height="720" loading="' + loading + '" decoding="async"/>'
       + closedOverlayMarkup(course)
       + '</div>'
       + '<div class="course-body">'

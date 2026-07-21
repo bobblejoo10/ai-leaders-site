@@ -246,6 +246,13 @@
         params.append(key, value);
       });
     }
+    if (options && options.operators) {
+      Object.keys(options.operators).forEach(function (key) {
+        var value = options.operators[key];
+        if (value == null || value === '') return;
+        params.append(key, String(value));
+      });
+    }
     if (options && options.order) params.set('order', options.order);
     if (options && options.limit) params.set('limit', String(options.limit));
     return request('/rest/v1/' + table + '?' + params.toString(), {

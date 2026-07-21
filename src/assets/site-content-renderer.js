@@ -126,7 +126,7 @@
 
   function imageMarkup(src, alt, className) {
     if (!src) return '';
-    return '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(alt || '') + '"' + (className ? ' class="' + escapeHtml(className) + '"' : '') + '>';
+    return '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(alt || '') + '"' + (className ? ' class="' + escapeHtml(className) + '"' : '') + ' loading="lazy" decoding="async">';
   }
 
   function preferredHeroImage(banner) {
