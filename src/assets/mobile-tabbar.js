@@ -19,7 +19,7 @@
     + '    <span>홈</span>'
     + '  </a>'
     + '  <a class="mt-item" data-mt="faq" href="/faq/">'
-    + '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 9a3.5 3.5 0 1 1 5.4 2.9c-1.1.7-1.9 1.3-1.9 2.6v.3"/><circle cx="12" cy="18.5" r=".35" fill="currentColor" stroke="none"/></svg>'
+    + '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 1 3.4 6.6L4 20l1.1-3.3A7.96 7.96 0 0 1 4 12Z"/><path d="M9.3 9.3a2.7 2.7 0 1 1 3.9 2.4c-.9.5-1.5 1-1.5 2.1"/><circle cx="12" cy="15.6" r="1.1" fill="currentColor" stroke="none"/></svg>'
     + '    <span>문의</span>'
     + '  </a>'
     + '  <button class="mt-item" type="button" data-mt="category" aria-haspopup="true" aria-expanded="false">'
@@ -68,7 +68,7 @@
     + '  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 19l-7-7 7-7"/></svg>'
     + '</button>';
 
-  var BACK_BUTTON_PATH_PREFIXES = ['/course-detail', '/corporate', '/instructor-apply'];
+  var BACK_BUTTON_PATH_PREFIXES = ['/course-detail', '/course'];
 
   function ensureStyles() {
     if (document.querySelector('link[data-mobile-tabbar-style]')) return;
@@ -94,9 +94,7 @@
 
   function isBackButtonPage() {
     var path = currentPath();
-    return BACK_BUTTON_PATH_PREFIXES.some(function (prefix) {
-      return path.indexOf(prefix) === 0;
-    });
+    return BACK_BUTTON_PATH_PREFIXES.indexOf(path) !== -1;
   }
 
   function renderBackButton() {
