@@ -41,7 +41,6 @@ const component = await readFile(path.join(root, 'src/assets/quick-links.js'), '
 const expectedLinks = [
   'https://www.instagram.com/ai_leaders_/',
   'https://www.facebook.com/people/Ai%EB%A6%AC%EB%8D%94%EC%8A%A4%ED%98%91%ED%9A%8C/61567872351191/#',
-  'href="#"',
   'https://www.youtube.com/@AI%EB%A6%AC%EB%8D%94%EC%8A%A4%ED%98%91%ED%9A%8C',
   'https://cafe.naver.com/newaileaders',
 ];
@@ -52,7 +51,7 @@ for (const expected of expectedLinks) {
   else if (index <= previousIndex) errors.push(`src/assets/quick-links.js: incorrect social link order near ${expected}`);
   previousIndex = index;
 }
-if (count(component, 'class=\"qitem\"') !== 5) errors.push('src/assets/quick-links.js: expected exactly five social items');
+if (count(component, 'class=\"qitem\"') !== 4) errors.push('src/assets/quick-links.js: expected exactly four social items');
 if (!component.includes('class=\"q-top\"')) errors.push('src/assets/quick-links.js: missing TOP button');
 if (!component.includes('class=\"q-toggle\"')) errors.push('src/assets/quick-links.js: missing mobile expand/collapse toggle button');
 if (!component.includes('class=\"q-naver-mark\"') || !component.includes('fill=\"currentColor\"') || !component.includes('fill=\"#ffffff\"')) {
@@ -76,8 +75,8 @@ for (const required of requiredStyles) {
 if (!/\.quick-links \.q-top \{[^}]*background:\s*#0c1828/.test(styles)) {
   errors.push('src/assets/quick-links.css: mobile TOP button must be a solid dark fill, not translucent');
 }
-if (!/\.quick-links\.is-expanded \.qitem:nth-child\(3\),\s*\n\s*\.quick-links\.is-expanded \.qitem:nth-child\(5\)\s*\{\s*\n\s*display:\s*none;/.test(styles)) {
-  errors.push('src/assets/quick-links.css: expanded mobile menu must show only Instagram, Facebook, YouTube (Kakao/Naver hidden)');
+if (!/\.quick-links\.is-expanded \.qitem:nth-child\(4\)\s*\{\s*\n\s*display:\s*none;/.test(styles)) {
+  errors.push('src/assets/quick-links.css: expanded mobile menu must show only Instagram, Facebook, YouTube (Naver hidden)');
 }
 
 const layout = await readFile(path.join(root, 'src/assets/site-layout.js'), 'utf8');
