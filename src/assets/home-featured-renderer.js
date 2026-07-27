@@ -55,7 +55,7 @@
     var thumb = typeof s.courseThumbnail === 'function' ? s.courseThumbnail(course) : (course.thumbImg || '/images/logo-ink.png');
     var priority = index === 0
       ? ' loading="eager" fetchpriority="high"'
-      : ' loading="lazy"';
+      : ' loading="eager"';
     var fallbackCode = global.AiLeadersUtils && global.AiLeadersUtils.stablePublicCode
       ? global.AiLeadersUtils.stablePublicCode(course.id)
       : course.id;

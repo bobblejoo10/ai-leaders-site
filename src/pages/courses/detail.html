@@ -365,6 +365,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div data-site-nav></div>
 <script src="/assets/site-layout.js?v=20260721-admin-entry-1"></script>
 
+<style>#courseHero,#mainContent{visibility:hidden}body.course-detail-ready #courseHero,body.course-detail-ready #mainContent{visibility:visible}
+#courseLoading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;z-index:40}
+body.course-detail-ready #courseLoading{display:none}
+#courseLoading .cl-bar{width:180px;height:4px;border-radius:999px;background:#e8eef7;overflow:hidden;position:relative}
+#courseLoading .cl-bar>span{position:absolute;top:0;left:-40%;width:40%;height:100%;background:#0172fe;border-radius:999px;animation:clMove 1.1s ease-in-out infinite}
+@keyframes clMove{0%{left:-40%}100%{left:100%}}
+#detailImg.detail-img-cloak{opacity:0}
+#detailImg.detail-img-cloak.is-loaded{opacity:1;transition:opacity .3s ease}</style>
+<div id="courseLoading" aria-hidden="true"><div class="cl-bar"><span></span></div></div>
 <!-- HERO -->
 <header class="page-hero" id="courseHero" style="padding-top:calc(var(--nav-h) + 56px);padding-bottom:72px;">
   <div class="hero-grid"></div>
@@ -820,9 +829,26 @@ function resolveCourseRoute() {
   return { id: staticId, publicCode: normalizeCourseCode(routeCode) };
 }
 
+function revealWhenHeroImageReady() {
+  var reveal = function () { document.body.classList.add('course-detail-ready'); };
+  var imgs = [document.getElementById('courseThumbImg'), document.getElementById('courseThumbImgMobile')].filter(Boolean);
+  var pending = 0, done = false;
+  function finish() { if (done) return; done = true; reveal(); }
+  imgs.forEach(function (img) {
+    if (img.complete && img.naturalWidth > 0) return;
+    pending++;
+    var on = function () { pending--; if (pending <= 0) finish(); };
+    img.addEventListener('load', on, { once: true });
+    img.addEventListener('error', on, { once: true });
+  });
+  if (pending === 0) { finish(); return; }
+  setTimeout(finish, 2500);
+}
+
 async function bootCourseDetailPage() {
   if (window.__courseDetailBooted) return;
   window.__courseDetailBooted = true;
+  setTimeout(function(){ document.body.classList.add('course-detail-ready'); }, 6000);
   if (window.CourseStore && typeof window.CourseStore.ready === 'function') {
     await window.CourseStore.ready().catch(function () {});
   }
@@ -836,6 +862,7 @@ async function bootCourseDetailPage() {
     showNotFound(window.CourseStore && window.CourseStore.hasError && window.CourseStore.hasError()
       ? '데이터를 불러올 수 없습니다.'
       : '강의를 찾을 수 없습니다.');
+    document.body.classList.add('course-detail-ready');
     initNav();
     initReveal();
     return;
@@ -861,6 +888,7 @@ async function bootCourseDetailPage() {
       : stableCourseCode(id));
   window.currentCourseForApplication = course;
   populatePage(course);
+  revealWhenHeroImageReady();
   trackCourseViewContent();
   initNav();
   initReveal();
@@ -1001,8 +1029,14 @@ function populatePage(c) {
 
   // 좌측 상세 이미지 (강연 종류에 맞게)
   const dimg = document.getElementById('detailImg');
+  dimg.classList.add('detail-img-cloak');
+  var showDimg = function () { dimg.classList.add('is-loaded'); };
+  dimg.addEventListener('load', showDimg, { once: true });
+  dimg.addEventListener('error', showDimg, { once: true });
   dimg.src = detailImageFor(c);
   dimg.alt = c.titlePlain + ' 상세 이미지';
+  if (dimg.complete && dimg.naturalWidth > 0) showDimg();
+  setTimeout(showDimg, 3000);
 
   // 우측 신청 카드
   document.getElementById('applyTitle').textContent = c.titlePlain;
