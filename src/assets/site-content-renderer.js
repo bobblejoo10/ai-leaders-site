@@ -56,7 +56,8 @@
     return {
       banners: sortByOrder(payload.state.banners || []),
       instructors: sortInstructors(payload.state.instructors || []),
-      options: sortByOrder(payload.state.options || [])
+      options: sortByOrder(payload.state.options || []),
+      faqs: sortByOrder(payload.state.faqs || [])
     };
   }
 
@@ -81,6 +82,11 @@
       getOptions: function (group, includeInactive) {
         return active(state.options || [], includeInactive).filter(function (item) {
           return item.optionGroup === group;
+        });
+      },
+      getFaqs: function (category, includeInactive) {
+        return active(state.faqs || [], includeInactive).filter(function (item) {
+          return !category || item.category === category;
         });
       }
     };
@@ -709,12 +715,54 @@
     document.body.appendChild(badge);
   }
 
+  var FAQ_CATEGORIES = [
+    ['apply', '수강 · 신청'],
+    ['lecture', '강연 · 방식'],
+    ['pay', '결제 · 환불'],
+    ['biz', '기업 · 기관 교육']
+  ];
+
+  function renderFaqs() {
+    var tabs = document.querySelector('.faq-tabs');
+    var noResult = document.getElementById('faqNoResult');
+    if (!tabs || !noResult) return;
+    var container = noResult.parentNode;
+    if (!container) return;
+    var faqs = store.getFaqs();
+    if (!faqs.length) return;
+
+    var chev = '<svg class="faq-chev" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg>';
+    Array.prototype.slice.call(container.querySelectorAll('.faq-group')).forEach(function (group) {
+      group.parentNode.removeChild(group);
+    });
+
+    FAQ_CATEGORIES.forEach(function (cat) {
+      var items = faqs.filter(function (item) { return item.category === cat[0]; });
+      if (!items.length) return;
+      var group = document.createElement('div');
+      group.className = 'faq-group reveal is-in';
+      group.setAttribute('data-cat', cat[0]);
+      group.innerHTML = '<p class="faq-group-title"><span class="tick"></span>' + escapeHtml(cat[1]) + '</p>'
+        + '<div class="faq">'
+        + items.map(function (item) {
+            return '<div class="faq-item"><div class="faq-header">'
+              + '<button aria-expanded="false" class="faq-trigger">' + escapeHtml(item.question) + chev + '</button>'
+              + '</div><div class="faq-content"><div class="faq-content-inner">' + escapeHtml(item.answer).replace(/\n/g, '<br>') + '</div></div></div>';
+          }).join('')
+        + '</div>';
+      container.insertBefore(group, noResult);
+    });
+
+    if (typeof global.AiLeadersFaqInit === 'function') global.AiLeadersFaqInit();
+  }
+
   function renderAll() {
     renderPreviewBadge();
     renderHero().catch(function () {});
     renderLandingInstructors();
     renderAboutInstructors();
     renderFormOptions();
+    renderFaqs();
   }
 
   store.ready().then(renderAll).catch(function () {});

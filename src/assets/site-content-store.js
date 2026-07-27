@@ -21,11 +21,18 @@
     instructor_mode: '강사 지원 강의 형태',
     instructor_field: '강사 지원 전문 분야'
   };
+  var FAQ_CATEGORIES = {
+    apply: '수강 · 신청',
+    lecture: '강연 · 방식',
+    pay: '결제 · 환불',
+    biz: '기업 · 기관 교육'
+  };
 
   var cache = {
     banners: [],
     instructors: [],
-    options: []
+    options: [],
+    faqs: []
   };
   var loaded = false;
   var lastError = null;
@@ -87,6 +94,17 @@
     item.optionGroup = text(item.optionGroup);
     item.label = text(item.label);
     item.value = text(item.value) || item.label;
+    item.sortOrder = toNumber(item.sortOrder, 0);
+    item.isActive = toBoolean(item.isActive, true);
+    return item;
+  }
+
+  function normalizeFaq(faq) {
+    var item = Object.assign({}, faq || {});
+    item.id = text(item.id);
+    item.category = text(item.category) || 'apply';
+    item.question = text(item.question);
+    item.answer = text(item.answer);
     item.sortOrder = toNumber(item.sortOrder, 0);
     item.isActive = toBoolean(item.isActive, true);
     return item;
@@ -191,6 +209,29 @@
     };
   }
 
+  function faqFromRow(row) {
+    return normalizeFaq({
+      id: row.id,
+      category: row.category,
+      question: row.question,
+      answer: row.answer,
+      sortOrder: row.sort_order,
+      isActive: row.is_active
+    });
+  }
+
+  function faqToRow(faq) {
+    var item = normalizeFaq(faq);
+    return {
+      id: item.id,
+      category: item.category,
+      question: item.question,
+      answer: item.answer,
+      sort_order: item.sortOrder,
+      is_active: item.isActive
+    };
+  }
+
   function sortByOrder(a, b) {
     var order = toNumber(a.sortOrder, 0) - toNumber(b.sortOrder, 0);
     if (order !== 0) return order;
@@ -201,6 +242,7 @@
     cache.banners = (next.banners || []).map(normalizeBanner).sort(sortByOrder);
     cache.instructors = (next.instructors || []).map(normalizeInstructor).sort(sortByOrder);
     cache.options = (next.options || []).map(normalizeOption).sort(sortByOrder);
+    cache.faqs = (next.faqs || []).map(normalizeFaq).sort(sortByOrder);
     loaded = true;
     lastError = null;
     notify();
@@ -216,10 +258,14 @@
       api.selectRows('instructors', { select: '*' }),
       api.selectRows('form_options', { select: '*' })
     ]);
+    // FAQ 테이블(site_faqs)이 아직 없거나 조회에 실패해도 배너/강사/옵션 로딩은
+    // 막히지 않도록 FAQ 는 별도로 불러오고 실패 시 빈 목록으로 처리한다.
+    var faqRows = await api.selectRows('site_faqs', { select: '*' }).catch(function () { return []; });
     return setCache({
       banners: rows[0].map(bannerFromRow),
       instructors: rows[1].map(instructorFromRow),
-      options: rows[2].map(optionFromRow)
+      options: rows[2].map(optionFromRow),
+      faqs: (faqRows || []).map(faqFromRow)
     });
   }
 
@@ -260,6 +306,12 @@
   function getOptions(group, includeInactive) {
     return cache.options.filter(function (item) {
       return item.optionGroup === group && (includeInactive || item.isActive);
+    }).map(clone);
+  }
+
+  function getFaqs(category, includeInactive) {
+    return cache.faqs.filter(function (item) {
+      return (!category || item.category === category) && (includeInactive || item.isActive);
     }).map(clone);
   }
 
@@ -337,6 +389,26 @@
     return refresh();
   }
 
+  async function saveFaq(faq) {
+    var item = normalizeFaq(faq);
+    if (!item.id) item.id = api.createId('faq');
+    await api.upsertRows('site_faqs', [faqToRow(item)], 'id');
+    return refresh();
+  }
+
+  async function deleteFaq(id) {
+    if (!id) return getState();
+    await api.deleteRows('site_faqs', { id: id });
+    return refresh();
+  }
+
+  async function saveFaqOrder(ids) {
+    var rows = orderedRows(cache.faqs, ids, faqToRow);
+    if (!rows.length) return getState();
+    await api.upsertRows('site_faqs', rows, 'id');
+    return refresh();
+  }
+
   async function uploadAsset(file, prefix, options) {
     if (!api || !file) throw new Error('업로드할 파일이 없습니다.');
     var path = api.createStoragePath(prefix || 'site-assets', file.name);
@@ -349,6 +421,7 @@
 
   global.SiteContentStore = {
     optionGroups: clone(OPTION_GROUPS),
+    faqCategories: clone(FAQ_CATEGORIES),
     contentAssetsBucket: CONTENT_ASSETS_BUCKET,
     ready: ready,
     refresh: refresh,
@@ -369,6 +442,10 @@
     saveOption: saveOption,
     saveOptionOrder: saveOptionOrder,
     deleteOption: deleteOption,
+    getFaqs: getFaqs,
+    saveFaq: saveFaq,
+    saveFaqOrder: saveFaqOrder,
+    deleteFaq: deleteFaq,
     uploadAsset: uploadAsset
   };
 
