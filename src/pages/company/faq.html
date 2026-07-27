@@ -419,27 +419,38 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
   });
 
-  // FAQ 아코디언 (single open mode)
-  document.querySelectorAll('.faq-item').forEach(function(item){
-    var btn = item.querySelector('.faq-trigger');
-    var content = item.querySelector('.faq-content');
-    btn.addEventListener('click', function(){
-      document.querySelectorAll('.faq-item.on').forEach(function(other){
-        if(other !== item){
-          other.classList.remove('on');
-          other.querySelector('.faq-trigger').setAttribute('aria-expanded','false');
-          other.querySelector('.faq-content').style.maxHeight = '0';
-        }
+  // FAQ 아코디언 (single open mode) — 동적으로 다시 그려진 항목에도 재적용할 수 있도록 함수화
+  function bindAccordion(){
+    document.querySelectorAll('.faq-item').forEach(function(item){
+      if(item.__faqBound) return;
+      item.__faqBound = true;
+      var btn = item.querySelector('.faq-trigger');
+      var content = item.querySelector('.faq-content');
+      if(!btn || !content) return;
+      btn.addEventListener('click', function(){
+        document.querySelectorAll('.faq-item.on').forEach(function(other){
+          if(other !== item){
+            other.classList.remove('on');
+            other.querySelector('.faq-trigger').setAttribute('aria-expanded','false');
+            other.querySelector('.faq-content').style.maxHeight = '0';
+          }
+        });
+        var open = item.classList.toggle('on');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        content.style.maxHeight = open ? content.scrollHeight + 'px' : '0';
       });
-      var open = item.classList.toggle('on');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      content.style.maxHeight = open ? content.scrollHeight + 'px' : '0';
     });
-  });
+  }
 
   // 스크롤 등장
   const ro = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('is-in'); ro.unobserve(e.target); } }), { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+  function observeReveals(){
+    document.querySelectorAll('.reveal').forEach(function(el){
+      if(el.__revObserved) return;
+      el.__revObserved = true;
+      ro.observe(el);
+    });
+  }
 
   // FAQ 카테고리 탭 + 검색 필터
   var search = document.getElementById('faqSearch');
@@ -474,6 +485,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     });
   });
   if(search){ search.addEventListener('input', applyFilter); }
+
+  bindAccordion();
+  observeReveals();
+
+  // 콘텐츠 렌더러(site-content-renderer.js)가 Supabase에서 FAQ를 다시 그린 뒤 호출한다.
+  window.AiLeadersFaqInit = function(){ bindAccordion(); observeReveals(); applyFilter(); };
 })();
 </script>
 
@@ -646,5 +663,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script src="/assets/mobile-nav.js"></script>
 <script src="/assets/chatbot-launcher.js"></script>
 <script src="/assets/mobile-tabbar.js?v=20260723-5"></script>
+<script src="/assets/supabase-store-common.js?v=20260727-faq-1"></script>
+<script src="/assets/site-content-store.js?v=20260727-faq-2"></script>
+<script src="/assets/site-content-renderer.js?v=20260727-faq-2"></script>
 </body>
 </html>

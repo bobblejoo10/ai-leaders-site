@@ -72,6 +72,7 @@
       <button class="tab is-active" id="contentTabBanner" type="button" role="tab" aria-selected="true" aria-controls="contentPanelBanner" tabindex="0" data-tab="banner">히어로 배너</button>
       <button class="tab" id="contentTabInstructor" type="button" role="tab" aria-selected="false" aria-controls="contentPanelInstructor" tabindex="-1" data-tab="instructor">강사진</button>
       <button class="tab" id="contentTabOption" type="button" role="tab" aria-selected="false" aria-controls="contentPanelOption" tabindex="-1" data-tab="option">드롭다운 옵션</button>
+      <button class="tab" id="contentTabFaq" type="button" role="tab" aria-selected="false" aria-controls="contentPanelFaq" tabindex="-1" data-tab="faq">FAQ</button>
     </div>
 
     <section class="workspace" id="contentPanelBanner" role="tabpanel" aria-labelledby="contentTabBanner" data-section="banner">
@@ -173,20 +174,48 @@
         <div class="panel-body"><div class="list" id="optionList"></div></div>
       </section>
     </section>
+
+    <section class="workspace" id="contentPanelFaq" role="tabpanel" aria-labelledby="contentTabFaq" data-section="faq" hidden>
+      <section class="panel">
+        <div class="panel-head">
+          <div><div class="panel-title">FAQ 수정/추가</div><div class="panel-sub">FAQ 페이지의 질문/답변에 반영됩니다. 카테고리는 페이지 상단 탭과 동일합니다.</div></div>
+        </div>
+        <div class="panel-body">
+          <form id="faqForm">
+            <input id="faqId" type="hidden"/>
+            <div class="form-grid">
+              <div class="field"><label for="faqCategory">카테고리</label><select id="faqCategory"></select></div>
+              <div class="field"><label class="switch-row"><input id="faqActive" type="checkbox" checked/> 활성화</label></div>
+              <div class="field full"><label for="faqQuestion">질문</label><input id="faqQuestion" required placeholder="예: 강연 신청은 어떻게 하나요?"/></div>
+              <div class="field full"><label for="faqAnswer">답변</label><textarea id="faqAnswer" required placeholder="질문에 대한 답변을 입력하세요."></textarea></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn-admin primary" type="submit">저장</button>
+              <button class="btn-admin ghost" type="button" data-preview-target="/faq/">FAQ 미리보기</button>
+              <button class="btn-admin danger" type="button" id="faqDeleteBtn">삭제</button>
+            </div>
+          </form>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><div><div class="panel-title">FAQ 목록</div><div class="panel-sub">선택한 카테고리 안에서 드래그한 순서가 공개 페이지에 반영됩니다.</div></div><button class="btn-admin primary" type="button" id="faqNewBtn">새 FAQ</button></div>
+        <div class="panel-body"><div class="list" id="faqList"></div></div>
+      </section>
+    </section>
   </main>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7/dist/umd/supabase.min.js" integrity="sha384-BmlQlKlDvXvKoxkn5OQuUo/aJQCTXeB+Kls6EccBmG4Kf8AXvp89RtO9MtPxP/r5" crossorigin="anonymous"></script>
 <script src="/assets/supabase-store-common.js?v=20260721-form-submit-1"></script>
 <script src="/assets/admin-auth.js?v=20260719-secure-admin-1"></script>
-<script src="/assets/site-content-store.js?v=20260716-storage-auth-1"></script>
+<script src="/assets/site-content-store.js?v=20260727-faq-2"></script>
 <script src="/assets/vendor/sortable.min.js?v=1.15.6-local"></script>
 <script src="/assets/vendor/compressor.min.js?v=1.3.0-local"></script>
 <script src="/assets/image-upload-optimizer.js?v=20260721-egress-pilot-1"></script>
 <script>
 (function(){
   var store = window.SiteContentStore;
-  var state = { banners: [], instructors: [], options: [] };
+  var state = { banners: [], instructors: [], options: [], faqs: [] };
   var currentTab = 'banner';
   var sortableInstances = {};
   var PREVIEW_PREFIX = 'aiLeadersSiteContentPreview:';
@@ -222,6 +251,7 @@
     status.textContent = text(value) ? '업로드된 비디오 있음. 저장하면 이 배너에는 비디오가 우선 노출됩니다.' : '업로드된 비디오가 없으면 이미지 배너가 노출됩니다.';
   }
   function selectedOptions(){ return state.options.filter(function(item){ return item.optionGroup === $('optionGroup').value; }); }
+  function selectedFaqs(){ return state.faqs.filter(function(item){ return item.category === $('faqCategory').value; }); }
   function nextSortOrder(items, id){
     var current = (items || []).find(function(item){ return item.id === id; });
     if (current) return Number(current.sortOrder || 0);
@@ -275,6 +305,7 @@
     if (kind === 'banner') { action = function(){ return store.saveBannerOrder(ids); }; label = '배너'; }
     if (kind === 'instructor') { action = function(){ return store.saveInstructorOrder(ids); }; label = '강사진'; }
     if (kind === 'option') { action = function(){ return store.saveOptionOrder(ids); }; label = '옵션'; }
+    if (kind === 'faq') { action = function(){ return store.saveFaqOrder(ids); }; label = 'FAQ'; }
     if (!action) return;
     saveWithStatus(action, label + ' 순서를 저장했습니다.');
   }
@@ -290,6 +321,7 @@
     renderBanners();
     renderInstructors();
     renderOptions();
+    renderFaqs();
   }
 
   function renderBanners(){
@@ -460,6 +492,53 @@
     };
   }
 
+  function renderFaqCategories(){
+    var cats = store.faqCategories || {};
+    $('faqCategory').innerHTML = Object.keys(cats).map(function(key){
+      return '<option value="' + esc(key) + '">' + esc(cats[key]) + '</option>';
+    }).join('');
+  }
+
+  function renderFaqs(){
+    var list = $('faqList');
+    if (!list) return;
+    var items = selectedFaqs();
+    if (!items.length) { list.innerHTML = '<div class="list-empty">선택한 카테고리에 FAQ가 없습니다.</div>'; setupSortable('faq'); return; }
+    list.innerHTML = items.map(function(item){
+      return '<div class="item is-sortable is-compact sortable-item" data-order-id="' + esc(item.id) + '">'
+        + dragHandle('FAQ')
+        + '<div><div class="item-title">' + esc(item.question || '질문 없음') + '</div><div class="item-meta"><span class="pill' + (item.isActive ? '' : ' off') + '">' + (item.isActive ? '활성' : '비활성') + '</span>' + esc((item.answer || '').slice(0, 60)) + ((item.answer || '').length > 60 ? '…' : '') + '</div></div>'
+        + '<div class="item-actions"><button class="btn-admin" type="button" data-edit-faq="' + esc(item.id) + '">수정</button></div>'
+        + '</div>';
+    }).join('');
+    list.querySelectorAll('[data-edit-faq]').forEach(function(button){
+      button.addEventListener('click', function(){ fillFaq(state.faqs.find(function(item){ return item.id === button.getAttribute('data-edit-faq'); })); });
+    });
+    setupSortable('faq');
+  }
+
+  function fillFaq(item){
+    item = item || {};
+    $('faqId').value = item.id || '';
+    if (item.category) $('faqCategory').value = item.category;
+    $('faqQuestion').value = item.question || '';
+    $('faqAnswer').value = item.answer || '';
+    $('faqActive').checked = item.isActive !== false;
+    $('faqDeleteBtn').hidden = !item.id;
+    renderFaqs();
+  }
+
+  function collectFaq(){
+    return {
+      id: $('faqId').value || undefined,
+      category: $('faqCategory').value,
+      question: text($('faqQuestion').value),
+      answer: text($('faqAnswer').value),
+      sortOrder: nextSortOrder(selectedFaqs(), $('faqId').value),
+      isActive: $('faqActive').checked
+    };
+  }
+
   function clone(value){
     return JSON.parse(JSON.stringify(value || {}));
   }
@@ -490,6 +569,8 @@
       draft.instructors = upsertPreviewItem(draft.instructors || [], collectInstructor(), 'instructor');
     } else if (tab === 'option') {
       draft.options = upsertPreviewItem(draft.options || [], collectOption(), 'option');
+    } else if (tab === 'faq') {
+      draft.faqs = upsertPreviewItem(draft.faqs || [], collectFaq(), 'faq');
     }
     return draft;
   }
@@ -515,7 +596,10 @@
   function openPreview(target, tab){
     var section = document.querySelector('[data-section="' + tab + '"]');
     var form = section ? section.querySelector('form') : null;
-    if (form && typeof form.reportValidity === 'function' && !form.reportValidity()) return;
+    if (form && typeof form.reportValidity === 'function' && !form.reportValidity()) {
+      setNotice('미리보기 전에 표시된 필수 입력값(예: 제목)을 먼저 채워 주세요.', true);
+      return;
+    }
 
     var id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
     var payload = {
@@ -533,8 +617,16 @@
     var encoded = encodePreview(payload);
     var separator = target.indexOf('?') === -1 ? '?' : '&';
     var url = target + separator + 'sitePreview=' + encodeURIComponent(id) + '#sitePreviewData=' + encodeURIComponent(encoded);
-    window.open(url, '_blank', 'noopener');
-    setNotice('미리보기 탭을 열었습니다. 저장 전까지 공개 페이지에는 반영되지 않습니다.');
+
+    // 임시 링크를 만들어 클릭하는 방식으로 새 탭을 연다. window.open보다 팝업 차단기에 덜 막힌다.
+    var opener = document.createElement('a');
+    opener.href = url;
+    opener.target = '_blank';
+    opener.rel = 'noopener';
+    document.body.appendChild(opener);
+    opener.click();
+    document.body.removeChild(opener);
+    setNotice('미리보기 탭을 열었습니다. 저장 전까지 공개 페이지에는 반영되지 않습니다. 새 탭이 열리지 않으면 브라우저의 팝업 차단을 해제해 주세요.');
   }
 
   async function saveWithStatus(action, successMessage){
@@ -610,15 +702,6 @@
         optimization = await window.AiLeadersImageOptimizer.optimize(file);
         uploadFile = optimization.file;
         button.textContent = '업로드 중';
-
-  async function uploadPendingFile(fileInputId, targetId){
-    var fileInput = $(fileInputId);
-    if (!fileInput || !fileInput.files || !fileInput.files[0]) return false;
-    var button = document.querySelector('[data-file="' + fileInputId + '"][data-upload="' + targetId + '"]');
-    if (!button) return false;
-    await uploadSelectedAsset(button);
-    return true;
-  }
       }
       var uploaded = await store.uploadAsset(uploadFile, button.getAttribute('data-prefix'));
       target.value = uploaded.publicUrl;
@@ -642,6 +725,15 @@
       button.textContent = '업로드';
       if (isInstructorPhoto) setInstructorPhotoUploading(false);
     }
+  }
+
+  async function uploadPendingFile(fileInputId, targetId){
+    var fileInput = $(fileInputId);
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) return false;
+    var button = document.querySelector('[data-file="' + fileInputId + '"][data-upload="' + targetId + '"]');
+    if (!button) return false;
+    await uploadSelectedAsset(button);
+    return true;
   }
 
   document.querySelectorAll('[data-upload]').forEach(function(button){
@@ -691,19 +783,25 @@
     });
   });
   $('optionForm').addEventListener('submit', function(event){ event.preventDefault(); saveWithStatus(function(){ return store.saveOption(collectOption()); }); });
+  $('faqForm').addEventListener('submit', function(event){ event.preventDefault(); saveWithStatus(function(){ return store.saveFaq(collectFaq()); }); });
   $('bannerNewBtn').addEventListener('click', function(){ fillBanner(null); });
   $('instructorNewBtn').addEventListener('click', function(){ fillInstructor(null); });
   $('optionNewBtn').addEventListener('click', function(){ fillOption(null); });
+  $('faqNewBtn').addEventListener('click', function(){ fillFaq(null); });
   $('bannerDeleteBtn').addEventListener('click', function(){ var id = $('bannerId').value; if (id && confirm('이 배너를 삭제할까요?')) saveWithStatus(function(){ return store.deleteBanner(id); }); });
   $('instructorDeleteBtn').addEventListener('click', function(){ var id = $('instructorId').value; if (id && confirm('이 강사를 삭제할까요?')) saveWithStatus(function(){ return store.deleteInstructor(id); }); });
   $('optionDeleteBtn').addEventListener('click', function(){ var id = $('optionId').value; if (id && confirm('이 옵션을 삭제할까요?')) saveWithStatus(function(){ return store.deleteOption(id); }); });
+  $('faqDeleteBtn').addEventListener('click', function(){ var id = $('faqId').value; if (id && confirm('이 FAQ를 삭제할까요?')) saveWithStatus(function(){ return store.deleteFaq(id); }); });
   $('optionGroup').addEventListener('change', function(){ fillOption(null); renderOptions(); });
+  $('faqCategory').addEventListener('change', function(){ fillFaq(null); renderFaqs(); });
 
   renderOptionGroups();
+  renderFaqCategories();
   activateTab(currentTab, false);
   fillBanner(null);
   fillInstructor(null);
   fillOption(null);
+  fillFaq(null);
   store.ready().then(hydrate).catch(function(error){ setNotice(error.message || '데이터를 불러올 수 없습니다.', true); });
   if (store.subscribe) store.subscribe(function(){ state = store.getState(); renderAll(); });
 })();
