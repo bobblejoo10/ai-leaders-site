@@ -580,7 +580,7 @@
 
     function build() {
       var photos = instructors.map(function (item, i) {
-        return '<figure class="ctd-photo" data-ctd-photo="' + i + '">' + imageMarkup(item.photo, item.name + ' 강사') + '</figure>';
+        return '<figure class="ctd-photo" data-ctd-photo="' + i + '">' + imageMarkup(item.photo, item.name + ' ' + (item.label || '강사')) + '</figure>';
       }).join('');
       root.innerHTML = '<div class="ctd-image-stage">'
         + '<div class="ctd-image-actions">'
@@ -613,7 +613,7 @@
           : '';
         copy.innerHTML = '<div class="ctd-copy-inner">'
           + '<p class="ctd-quote">' + escapeHtml(instructorSummary(item, 'landing')) + '</p>'
-          + '<p class="ctd-name">' + escapeHtml(item.name + ' 강사') + '</p>'
+          + '<p class="ctd-name">' + escapeHtml(item.name + ' ' + (item.label || '강사')) + '</p>'
           + '<p class="ctd-designation">' + escapeHtml(item.role || '') + '</p>'
           + detailsMarkup
           + '<div class="ctd-actions">'
@@ -668,10 +668,10 @@
     row.innerHTML = instructors.map(function (item) {
       var key = item.slug || item.id;
       return '<div class="instr-item">'
-        + '<div class="instr-photo2" data-managed-instr="' + escapeHtml(key) + '" role="button" tabindex="0" aria-label="' + escapeHtml(item.name + ' 강사 이력 보기') + '" title="이력 보기">'
-        + imageMarkup(item.photo, item.name + ' 강사')
+        + '<div class="instr-photo2" data-managed-instr="' + escapeHtml(key) + '" role="button" tabindex="0" aria-label="' + escapeHtml(item.name + ' ' + (item.label || '강사') + ' 이력 보기') + '" title="이력 보기">'
+        + imageMarkup(item.photo, item.name + ' ' + (item.label || '강사'))
         + '</div>'
-        + '<p class="instr-cap"><strong>' + escapeHtml(item.name) + '</strong><span>강사</span></p>'
+        + '<p class="instr-cap"><strong>' + escapeHtml(item.name) + '</strong><span>' + escapeHtml(item.label || '강사') + '</span></p>'
         + '</div>';
     }).join('');
 
