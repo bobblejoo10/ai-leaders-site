@@ -334,7 +334,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     main { padding-bottom:72px; }
     body #courseHero .ch-info-row { flex-direction:row; align-items:baseline; gap:12px; }
     body #courseHero .ch-info-label { flex:0 0 56px !important; }
+    .ch-session-picker-mobile { display:block !important; }
   }
+  .ch-session-picker-mobile { display:none; margin:16px 0; }
+  #modalSessionPicker:empty { display:none; }
+  #modalSessionPicker { margin-bottom:18px; }
+  .ch-session-picker select { border-radius:12px; }
 </style>
 <style>
   .legal-modal-bg{position:fixed;inset:0;z-index:9999;background:rgba(12,24,40,.55);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s ease;}
@@ -451,6 +456,7 @@ body.course-detail-ready #courseLoading{display:none}
       <p class="modal-course-date" id="modalCourseDate" hidden></p>
     </div>
     <form onsubmit="submitForm(event)">
+      <div id="modalSessionPicker"></div>
       <div id="regFields"></div>
       <button class="btn submit-btn" type="submit">신청 완료하기</button>
     </form>
@@ -476,9 +482,9 @@ body.course-detail-ready #courseLoading{display:none}
   </div>
 </footer>
 
-<script src="/assets/supabase-store-common.js?v=20260721-form-submit-1"></script>
-<script src="/assets/courses-store.js?v=20260721-performance-2"></script>
-<script src="/assets/applications-store.js?v=20260721-form-submit-1"></script>
+<script src="/assets/supabase-store-common.js?v=20260729-storage-fix-1"></script>
+<script src="/assets/courses-store.js?v=20260729-cardfields-fix-1"></script>
+<script src="/assets/applications-store.js?v=20260729-event-date-1"></script>
 <script>
 // ── Course Data ──────────────────────────────────────────────────────────────
 const INSTRUCTORS = {
@@ -672,9 +678,10 @@ function paymentAccountSnapshot(course) {
 function titleWithLocation(title, location) {
   const text = String(title || '').trim();
   const place = String(location || '').trim();
+  // 관리자가 강연명에 이미 대괄호로 지역 표시를 직접 입력했으면 그대로 존중하고 덮어쓰지 않는다.
+  if (/^\[[^\]]+\]/.test(text)) return text;
   if (!place) return text;
   if (!text) return '[' + place + ']';
-  if (/^\[[^\]]+\]/.test(text)) return text.replace(/^\[[^\]]+\]/, '[' + place + ']');
   return '[' + place + '] ' + text;
 }
 
@@ -743,6 +750,106 @@ function buildManagedCourse(managed) {
     backUrl: managed.type === 'paid' ? '/course-paid/' : '/course-free/',
     backLabel: managed.type === 'paid' ? '유료 강연' : '무료 강연'
   };
+}
+
+function sessionOptionLabel(session) {
+  const dateKo = managedDateKo(session.eventDate) || session.eventDate || '';
+  // "지역 필터"(서울/부산/제주 같은 넓은 분류)가 아니라 "장소명/지역"을 우선 보여준다.
+  // 같은 "제주" 지역 안에서도 실제로는 제주/서귀포처럼 세부 장소가 다를 수 있기 때문.
+  const place = session.location || session.region || '';
+  const time = session.eventTime || '';
+  return [place, dateKo, time].filter(Boolean).join(' · ');
+}
+
+function courseWithSession(course, session) {
+  const merged = Object.assign({}, course);
+  merged.location = session.location || merged.location;
+  merged.address = session.address || merged.address;
+  merged.region = session.region || merged.region;
+  merged.eventDate = session.eventDate || merged.eventDate;
+  merged.eventTime = session.eventTime || merged.eventTime;
+  merged.date = managedDateKo(session.eventDate) || merged.date;
+  merged.time = session.eventTime || merged.time;
+  merged.instructor = session.instructor || merged.instructor;
+  merged.status = session.status || merged.status;
+  merged.selectedSessionId = session.id;
+  merged.selectedSessionLabel = sessionOptionLabel(session);
+  return merged;
+}
+
+function renderSessionPicker(managed, baseCourse) {
+  const allSessions = Array.isArray(managed && managed.sessions) ? managed.sessions : [];
+  const sessions = allSessions.filter(function (session) { return session && session.status !== 'hidden'; });
+  if (sessions.length < 2) return;
+
+  const optionsHtml = sessions.map(function (session) {
+    return '<option value="' + detailEscape(session.id) + '">' + detailEscape(sessionOptionLabel(session)) + '</option>';
+  }).join('');
+
+  function buildPicker(id) {
+    const wrap = document.createElement('div');
+    wrap.className = 'form-group ch-session-picker';
+    wrap.innerHTML = '<label class="form-label" for="' + id + '">지역 및 날짜 선택<span class="req">*</span></label>'
+      + '<select class="form-select" id="' + id + '">' + optionsHtml + '</select>';
+    return wrap;
+  }
+
+  const selects = [];
+
+  // 1) 히어로 썸네일 밑 "신청하기" 버튼 자리(PC) — 버튼은 드롭다운 아래로 내려간다.
+  const thumbBtn = document.getElementById('thumbApplyBtn');
+  if (thumbBtn && thumbBtn.parentNode) {
+    const thumbWrap = buildPicker('sessionSelectThumb');
+    thumbBtn.parentNode.insertBefore(thumbWrap, thumbBtn);
+    selects.push(thumbWrap.querySelector('select'));
+  }
+
+  // 2) 우측 신청 카드(강연정보 위, PC)
+  const infoEl = document.getElementById('applyInfo');
+  if (infoEl && infoEl.parentNode) {
+    const cardWrap = buildPicker('sessionSelectCard');
+    cardWrap.style.marginTop = '16px';
+    infoEl.parentNode.insertBefore(cardWrap, infoEl);
+    selects.push(cardWrap.querySelector('select'));
+  }
+
+  // 3) 모바일 배너 이미지 아래 (강연정보 표 위)
+  const statbarEl = document.getElementById('heroStatbar');
+  if (statbarEl && statbarEl.parentNode) {
+    const mobileWrap = buildPicker('sessionSelectMobile');
+    mobileWrap.classList.add('ch-session-picker-mobile');
+    statbarEl.parentNode.insertBefore(mobileWrap, statbarEl);
+    selects.push(mobileWrap.querySelector('select'));
+  }
+
+  // 4) 신청 모달 안, 제출 버튼 위
+  const modalPickerEl = document.getElementById('modalSessionPicker');
+  if (modalPickerEl) {
+    const modalWrap = buildPicker('sessionSelectModal');
+    modalPickerEl.innerHTML = '';
+    modalPickerEl.appendChild(modalWrap);
+    selects.push(modalWrap.querySelector('select'));
+  }
+
+  if (!selects.length) return;
+
+  const defaultSession = sessions.find(function (session) {
+    return session.eventDate === managed.eventDate && session.eventTime === managed.eventTime;
+  }) || sessions[0];
+
+  function applySelection(sessionId) {
+    const chosen = sessions.find(function (session) { return session.id === sessionId; }) || sessions[0];
+    selects.forEach(function (select) { select.value = chosen.id; });
+    const updated = courseWithSession(baseCourse, chosen);
+    window.currentCourseForApplication = updated;
+    populatePage(updated);
+  }
+
+  selects.forEach(function (select) {
+    select.value = defaultSession.id;
+    select.addEventListener('change', function () { applySelection(select.value); });
+  });
+  applySelection(defaultSession.id);
 }
 
 function normalizeCourseCode(value) {
@@ -888,6 +995,7 @@ async function bootCourseDetailPage() {
       : stableCourseCode(id));
   window.currentCourseForApplication = course;
   populatePage(course);
+  renderSessionPicker(managed, course);
   revealWhenHeroImageReady();
   trackCourseViewContent();
   initNav();
@@ -1250,13 +1358,16 @@ async function submitForm(e) {
     || (window.CourseStore && typeof window.CourseStore.getCoursePublicCode === 'function'
       ? window.CourseStore.getCoursePublicCode(course)
       : stableCourseCode(courseIdForApplication));
-  const courseTitleForApplication = course.titlePlain || document.getElementById('modalCourseName').textContent.replace(/^신청강연:\s*/, '');
+  const courseTitleForApplication = (course.titlePlain || document.getElementById('modalCourseName').textContent.replace(/^신청강연:\s*/, ''))
+    + (course.selectedSessionLabel ? ' (' + course.selectedSessionLabel + ')' : '');
   if (window.ApplicationStore) {
     try {
       savedApplication = await window.ApplicationStore.addApplication({
         courseId: courseIdForApplication,
         courseTitle: courseTitleForApplication,
         courseType: course.type === 'paid' ? 'paid' : 'free',
+        eventDate: course.eventDate || '',
+        eventTime: course.eventTime || '',
         name: applicantName,
         phone: normalizedPhone,
         email: emailEl ? emailEl.value.trim() : '',
