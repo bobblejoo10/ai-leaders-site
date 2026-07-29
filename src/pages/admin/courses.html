@@ -70,6 +70,17 @@
   .category-control{display:grid;grid-template-columns:1fr;gap:8px}
   .category-control.is-custom{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto}
   .category-control [hidden]{display:none!important}
+  .session-list{display:grid;gap:12px;margin-bottom:10px}
+  .session-row{border:1px solid var(--admin-line);border-radius:10px;background:#fbfcfe;padding:14px}
+  .session-row-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+  .session-row-grid .field.full{grid-column:1/-1}
+  .session-row-grid .field label{font-size:11px}
+  .session-row-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .session-row-head .featured-sort-rank{margin-right:auto}
+  .field.is-disabled-by-sessions{opacity:.5}
+  .field.is-disabled-by-sessions input,.field.is-disabled-by-sessions select{background:#f2f4f7;cursor:not-allowed}
+  .session-mode-note{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px}
+  .session-mode-note .field-help{margin:0;color:#9a3412;font-weight:800}
   .choice-add-btn{height:auto;min-height:42px;white-space:nowrap}
   .choice-manager{margin-top:9px;border:1px solid var(--admin-line);border-radius:8px;background:#fbfcfe;padding:0 10px}
   .choice-manager summary{cursor:pointer;padding:9px 0;color:#344054;font-size:12px;font-weight:900;list-style-position:inside}
@@ -105,8 +116,8 @@
   .image-file-input{position:absolute;inline-size:1px;block-size:1px;opacity:0;pointer-events:none}
   .dropzone-preview{width:100%;aspect-ratio:1/1;border-radius:7px;background:#eef2f7;display:grid;place-items:center;overflow:hidden;color:var(--admin-muted);font-size:12px;font-weight:800;text-align:center}
   .dropzone-preview img{width:100%;height:100%;object-fit:contain;display:block;background:#fff}
-  .dropzone-preview[data-preview="detailImg"]{display:block;overflow-x:hidden;overflow-y:auto;scrollbar-gutter:stable;background:#fff}
-  .dropzone-preview[data-preview="detailImg"] img{width:100%;height:auto;min-height:100%;object-fit:contain}
+  .dropzone-preview[data-preview="detailImg"]:not(.is-empty){display:block;overflow-x:hidden;overflow-y:auto;scrollbar-gutter:stable;background:#fff}
+  .dropzone-preview[data-preview="detailImg"]:not(.is-empty) img{width:100%;height:auto;min-height:100%;object-fit:contain}
   .dropzone-copy{font-size:12px;color:var(--admin-muted);text-align:center;line-height:1.5}
   .image-name{min-height:16px;font-size:11px;color:var(--admin-brand);font-weight:800;text-align:center;word-break:break-all}
   .dropzone-actions{display:flex;gap:8px;margin-top:10px}
@@ -145,6 +156,7 @@
   .mini-btn:hover{border-color:var(--admin-brand);color:var(--admin-brand)}
   .mini-btn.featured-toggle.is-selected{border-color:var(--admin-brand);background:#eef5ff;color:var(--admin-brand)}
   .mini-btn[disabled]{opacity:.45;cursor:not-allowed}
+  .group-tag{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:1px 8px;font-size:10px;font-weight:900;margin-top:4px;background:#eefdf3;color:#087443}
   .pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-top:1px solid var(--admin-line);background:#fbfcfe}
   .pagination-status{color:var(--admin-muted);font-size:13px;font-weight:800}
   .pagination-actions{display:flex;gap:8px}
@@ -172,6 +184,10 @@
   .featured-sort-copy strong{display:block;font-size:13px;line-height:1.4;word-break:keep-all}
   .featured-sort-copy span{display:block;margin-top:3px;color:var(--admin-muted);font-size:11px}
   .featured-sort-ghost{opacity:.45;background:#eef5ff}
+  .featured-tag{display:inline-flex;align-items:center;border-radius:999px;padding:1px 8px;font-size:10px;font-weight:900;margin-right:6px}
+  .featured-tag.manual{background:#eaf2ff;color:#1d4ed8}
+  .featured-tag.auto{background:#f2f4f7;color:#475467}
+  .featured-sort-item.is-auto{background:#fbfcfe}
   .featured-control-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--admin-line)}
   .featured-save-status{color:var(--admin-muted);font-size:12px;font-weight:800}
   .empty{padding:36px 20px;text-align:center;color:var(--admin-muted);font-weight:800}
@@ -288,7 +304,10 @@
                   </div>
                 </details>
               </div>
-              <div class="field">
+              <div class="field full session-mode-note" id="singleSessionNote" hidden>
+                <p class="field-help">▶ 아래 지역·장소·강연일·시간·강사 필드는 "통합 일정 회차"가 1개 이상 있어서 사용되지 않습니다 (회색으로 비활성화됨). 회차별 정보는 화면 아래쪽 "통합 일정 회차"에서 입력하세요.</p>
+              </div>
+              <div class="field" data-single-session-field="1">
                 <label for="region">지역 필터</label>
                 <select id="region" name="region">
                   <option value="">지역 선택</option>
@@ -312,15 +331,15 @@
                 </select>
                 <p class="field-help">무료 강연 페이지의 지역 필터에 사용됩니다. 비워두면 장소명/주소에서 자동 추론합니다.</p>
               </div>
-              <div class="field">
+              <div class="field" data-single-session-field="1">
                 <label for="location">장소명/지역</label>
                 <input id="location" name="location" placeholder="강남, 영등포, 온라인"/>
               </div>
-              <div class="field full">
+              <div class="field full" data-single-session-field="1">
                 <label for="address">상세 장소/주소</label>
                 <input id="address" name="address" placeholder="예: AI리더스협회 강남 교육장, 서울 강남구 테헤란로 123"/>
               </div>
-              <div class="field">
+              <div class="field" data-single-session-field="1">
                 <label for="instructorSelect">강사</label>
                 <div class="category-control" id="instructorControl">
                   <select id="instructorSelect" name="instructorSelect">
@@ -385,19 +404,19 @@
                   </div>
                 </div>
               </div>
-              <div class="field">
+              <div class="field" data-single-session-field="1">
                 <label for="eventDate">강연일</label>
-                <input id="eventDate" name="eventDate" type="date" required/>
+                <input id="eventDate" name="eventDate" type="date"/>
               </div>
-              <div class="field">
+              <div class="field" data-single-session-field="1">
                 <label for="eventStartTime">강연 시간</label>
                 <div class="time-control">
-                  <input type="time" id="eventStartTime" name="eventStartTime" aria-label="강연 시작 시간" step="60"/>
+                  <input type="text" id="eventStartTime" name="eventStartTime" aria-label="강연 시작 시간" placeholder="10:00" inputmode="numeric" pattern="[0-2][0-9]:[0-5][0-9]" maxlength="5"/>
                   <span>~</span>
-                  <input type="time" id="eventEndTime" name="eventEndTime" aria-label="강연 종료 시간" step="60"/>
+                  <input type="text" id="eventEndTime" name="eventEndTime" aria-label="강연 종료 시간" placeholder="13:00" inputmode="numeric" pattern="[0-2][0-9]:[0-5][0-9]" maxlength="5"/>
                 </div>
                 <input id="eventTime" name="eventTime" type="hidden"/>
-                <p class="field-help">시작/종료 시간을 자유롭게 입력할 수 있습니다 (분 단위 제한 없음).</p>
+                <p class="field-help">24시간제로 "시:분" 형식으로 입력하세요 (예: 14:30). 분 단위 제한 없음.</p>
               </div>
               <div class="field">
                 <label for="mealBreakMinutes">식사시간 (분)</label>
@@ -408,6 +427,12 @@
                 <label>신청자 집계</label>
                 <div class="hint">신청자 수는 강연 신청 데이터에서 자동으로 집계됩니다.</div>
                 <input id="applicantCount" name="applicantCount" type="hidden" value="0"/>
+              </div>
+              <div class="field full">
+                <label>통합 일정 회차 <span id="sessionCount" class="muted"></span></label>
+                <p class="field-help">같은 강연을 여러 지역·날짜로 진행할 때 회차를 추가하세요. 회차가 1개 이상 있으면 위 지역·장소·강연일·시간·강사 값 대신, 공개 페이지에서 회차 선택 드롭다운이 노출되고 회차별 정보가 사용됩니다.</p>
+                <div class="session-list" id="sessionList"></div>
+                <button class="btn-admin" type="button" id="addSessionBtn">+ 회차 추가</button>
               </div>
               <div class="field paid-field" id="priceField" hidden>
                 <label for="price">판매가</label>
@@ -488,7 +513,7 @@
           <div class="panel-head">
             <div>
               <div class="panel-title">강연 목록</div>
-              <div class="panel-sub">10개씩 넘겨 보면서 수정하거나 상태를 확인하세요.</div>
+              <div class="panel-sub">10개씩 넘겨 보면서 수정하거나 상태를 확인하세요. 통합 일정(여러 지역/날짜 회차)은 강연 "수정" 화면에서 관리합니다.</div>
             </div>
             <div class="course-filter-tools">
               <div class="tabs" role="group" aria-label="강연 구분 필터">
@@ -543,8 +568,8 @@
         <section class="panel">
           <div class="panel-head">
             <div>
-              <div class="panel-title">대표 강연 수동 지정·순서</div>
-              <div class="panel-sub">강연 목록에서 대표로 지정한 뒤 손잡이를 드래그해 순서를 바꾸세요. 최대 8개까지 지정할 수 있습니다.</div>
+              <div class="panel-title">대표 강연 노출 목록</div>
+              <div class="panel-sub">지금 공개 페이지에 노출되는 대표 강연 최대 8개입니다. "자동"은 마감이 임박한 순(동률이면 신청자 많은 순)으로 자동 배치되고, 마감된 강연은 수동 지정 여부와 상관없이 목록에서 자동으로 빠집니다. 손잡이로 순서를 드래그하면 그 시점부터 전체가 수동 고정되고, "해제"를 누르면 다시 자동 배치로 돌아갑니다.</div>
             </div>
           </div>
           <div class="panel-body">
@@ -574,10 +599,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7/dist/umd/supabase.min.js" integrity="sha384-BmlQlKlDvXvKoxkn5OQuUo/aJQCTXeB+Kls6EccBmG4Kf8AXvp89RtO9MtPxP/r5" crossorigin="anonymous"></script>
-<script src="/assets/supabase-store-common.js?v=20260721-form-submit-1"></script>
+<script src="/assets/supabase-store-common.js?v=20260729-storage-fix-1"></script>
 <script src="/assets/admin-auth.js?v=20260719-secure-admin-1"></script>
-<script src="/assets/courses-store.js?v=20260721-performance-2"></script>
-<script src="/assets/site-content-store.js?v=20260727-faq-2"></script>
+<script src="/assets/courses-store.js?v=20260729-cardfields-fix-1"></script>
+<script src="/assets/site-content-store.js?v=20260729-cache-refresh-1"></script>
 <script src="/assets/vendor/sortable.min.js?v=1.15.6-local"></script>
 <script>
 (function(){
@@ -597,6 +622,9 @@
   var manualFeaturedIds = [];
   var featuredDraftDirty = false;
   var featuredSortable = null;
+  var editingSessions = [];
+  var sessionSortable = null;
+  var REGION_OPTIONS = ['서울','부산','대구','인천','광주','대전','울산','세종','경기','강원','충북','충남','전북','전남','경북','경남','제주'];
   var pendingImageUploads = 0;
   var DEFAULT_CATEGORIES = ['제미나이', '클로드', 'AI 입문'];
   var DEFAULT_INSTRUCTORS = ['아이온', '문건우'];
@@ -1214,6 +1242,7 @@
     var name = document.querySelector('[data-file-name="' + target + '"]');
     if (!preview) return;
     preview.innerHTML = '';
+    preview.classList.toggle('is-empty', !value);
     if (value) {
       var img = document.createElement('img');
       img.src = value;
@@ -1355,7 +1384,7 @@
     $('location').value = course ? course.location || '' : '';
     $('address').value = course ? course.address || '' : '';
     fillInstructor(course ? course.instructor || '' : BASE_INSTRUCTORS[0]);
-    setImageValue('thumbImg', course ? course.thumbImg || '' : '/images/제미나이썸네일.jpg', '');
+    setImageValue('thumbImg', course ? course.thumbImg || '' : '', '');
     setImageValue('detailImg', course ? course.detailImg || '' : '', '');
     $('eventDate').value = course ? course.eventDate || '' : '';
     fillEventTime(course ? course.eventTime || '' : '10:00 - 13:00');
@@ -1367,6 +1396,112 @@
     $('badges').value = course ? (course.badges || []).join(', ') : '';
     $('summary').value = course ? course.summary || '' : '';
     fillApplicationNotice(course || null);
+    editingSessions = (course && Array.isArray(course.sessions) ? course.sessions : []).map(sessionToEditState);
+    renderSessionRows();
+  }
+
+  function splitEventTimeParts(eventTime){
+    var matches = String(eventTime || '').match(/\d{1,2}:\d{2}/g) || [];
+    return { start: matches[0] || '', end: matches[1] || matches[0] || '' };
+  }
+
+  function sessionToEditState(session){
+    var parts = splitEventTimeParts(session && session.eventTime);
+    return {
+      id: (session && session.id) || store.createSessionId(),
+      region: (session && session.region) || '',
+      location: (session && session.location) || '',
+      address: (session && session.address) || '',
+      eventDate: (session && session.eventDate) || '',
+      startTime: parts.start,
+      endTime: parts.end,
+      instructor: (session && session.instructor) || '',
+      status: (session && session.status) || 'open',
+      applicantCount: Number(session && session.applicantCount || 0)
+    };
+  }
+
+  function editStateToSession(item){
+    var eventTime = item.startTime
+      ? (item.endTime && item.endTime !== item.startTime ? item.startTime + ' - ' + item.endTime : item.startTime)
+      : '';
+    return {
+      id: item.id,
+      region: item.region,
+      location: item.location,
+      address: item.address,
+      eventDate: item.eventDate,
+      eventTime: eventTime,
+      instructor: item.instructor,
+      status: item.status,
+      applicantCount: item.applicantCount
+    };
+  }
+
+  function renderSessionRows(){
+    $('sessionCount').textContent = editingSessions.length ? '(' + editingSessions.length + '개)' : '';
+    if (sessionSortable && typeof sessionSortable.destroy === 'function') {
+      sessionSortable.destroy();
+      sessionSortable = null;
+    }
+    if (!editingSessions.length) {
+      $('sessionList').innerHTML = '<div class="empty">등록된 회차가 없습니다. 단독 강연으로 동작합니다.</div>';
+      updateSessionModeFields();
+      return;
+    }
+    $('sessionList').innerHTML = editingSessions.map(function(item, index){
+      return ''
+        + '<div class="session-row" data-session-id="' + store.escapeHtml(item.id) + '">'
+        + '<div class="session-row-head">'
+        + '<button class="featured-drag-handle" type="button" aria-label="회차 순서 이동">⋮⋮</button>'
+        + '<span class="featured-sort-rank">' + (index + 1) + '</span>'
+        + '<button class="btn-admin" type="button" data-duplicate-session="' + store.escapeHtml(item.id) + '">복제</button>'
+        + '<button class="btn-admin danger" type="button" data-remove-session="' + store.escapeHtml(item.id) + '">이 회차 삭제</button>'
+        + '</div>'
+        + '<div class="session-row-grid">'
+        + '<div class="field"><label>지역 필터</label><select data-session-field="region"><option value="">지역 선택</option>'
+        + REGION_OPTIONS.map(function(option){ return '<option value="' + option + '"' + (item.region === option ? ' selected' : '') + '>' + option + '</option>'; }).join('')
+        + '</select><p class="field-help">같은 통합 일정 안에서도 회차마다 실제 지역이 다르면(예: 제주/서귀포) 꼭 구분해서 선택하세요.</p></div>'
+        + '<div class="field"><label>장소명/지역</label><input type="text" data-session-field="location" value="' + store.escapeHtml(item.location) + '" placeholder="예: 제주상공회의소, 강남, 온라인"/></div>'
+        + '<div class="field full"><label>상세 주소</label><input type="text" data-session-field="address" value="' + store.escapeHtml(item.address) + '" placeholder="예: 제주상공회의소 5층 국제회의장"/></div>'
+        + '<div class="field"><label>날짜</label><input type="date" data-session-field="eventDate" value="' + store.escapeHtml(item.eventDate) + '"/></div>'
+        + '<div class="field"><label>시간 (24시간제, 예: 14:30)</label><div class="time-control"><input type="text" inputmode="numeric" pattern="[0-2][0-9]:[0-5][0-9]" maxlength="5" placeholder="10:00" data-session-field="startTime" value="' + store.escapeHtml(item.startTime) + '"/><span>~</span><input type="text" inputmode="numeric" pattern="[0-2][0-9]:[0-5][0-9]" maxlength="5" placeholder="13:00" data-session-field="endTime" value="' + store.escapeHtml(item.endTime) + '"/></div></div>'
+        + '<div class="field"><label>강사</label><input type="text" data-session-field="instructor" value="' + store.escapeHtml(item.instructor) + '" placeholder="예: 아이온"/></div>'
+        + '<div class="field"><label>모집 상태</label><select data-session-field="status">'
+        + '<option value="open"' + (item.status === 'open' ? ' selected' : '') + '>모집중</option>'
+        + '<option value="closed"' + (item.status === 'closed' ? ' selected' : '') + '>마감</option>'
+        + '<option value="hidden"' + (item.status === 'hidden' ? ' selected' : '') + '>숨김</option>'
+        + '</select></div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+    if (window.Sortable && editingSessions.length > 1) {
+      sessionSortable = window.Sortable.create($('sessionList'), {
+        animation: 160,
+        handle: '.featured-drag-handle',
+        draggable: '.session-row',
+        dataIdAttr: 'data-session-id',
+        ghostClass: 'featured-sort-ghost',
+        onEnd: function(){
+          var order = sessionSortable.toArray();
+          editingSessions.sort(function(a, b){ return order.indexOf(a.id) - order.indexOf(b.id); });
+          renderSessionRows();
+        }
+      });
+    }
+    updateSessionModeFields();
+  }
+
+  function updateSessionModeFields(){
+    var hasSessions = editingSessions.length > 0;
+    document.querySelectorAll('[data-single-session-field]').forEach(function(field){
+      field.classList.toggle('is-disabled-by-sessions', hasSessions);
+      field.querySelectorAll('input, select').forEach(function(input){
+        input.disabled = hasSessions;
+      });
+    });
+    var note = $('singleSessionNote');
+    if (note) note.hidden = !hasSessions;
   }
 
   function collectForm(){
@@ -1400,13 +1535,15 @@
       badges: splitBadges($('badges').value),
       summary: $('summary').value.trim(),
       featuredOrder: existingCourse ? existingCourse.featuredOrder : null,
-      applicationNotice: collectApplicationNotice()
+      applicationNotice: collectApplicationNotice(),
+      sessions: editingSessions.map(editStateToSession)
     }, paymentAccount);
   }
 
   function syncManualFeaturedFromCourses(){
+    // 마감되어 신청 불가능해진 강연은 수동 지정에서도 자동으로 빠진다.
     manualFeaturedIds = courses.filter(function(course){
-      return Number(course.featuredOrder) > 0;
+      return Number(course.featuredOrder) > 0 && store.isOpenForApply(course);
     }).sort(function(a, b){
       return Number(a.featuredOrder) - Number(b.featuredOrder);
     }).map(function(course){ return course.id; }).slice(0, MAX_MANUAL_FEATURED);
@@ -1474,26 +1611,35 @@
       featuredSortable = null;
     }
     manualFeaturedList.dataset.sortableReady = 'false';
-    var selected = manualFeaturedIds.map(function(id){
-      return courses.find(function(course){ return course.id === id; });
-    }).filter(Boolean);
-    manualFeaturedIds = selected.map(function(course){ return course.id; });
-    if (!selected.length) {
-      manualFeaturedList.innerHTML = '<div class="empty">수동 지정된 대표 강연이 없습니다. 강연 목록의 “대표 지정” 버튼으로 추가하세요.</div>';
+    // manualFeaturedIds가 가리키는 강연이 삭제됐거나 마감됐을 수 있으니, 실제로 존재하고
+    // 아직 신청 가능한 것만 남긴다. (마감된 강연은 수동 지정에서도 자동으로 제외된다.)
+    manualFeaturedIds = manualFeaturedIds.filter(function(id){
+      var course = courses.find(function(item){ return item.id === id; });
+      return !!course && store.isOpenForApply(course);
+    });
+    var list = finalFeaturedCourses();
+    if (!list.length) {
+      manualFeaturedList.innerHTML = '<div class="empty">지금 노출 가능한(신청 가능한) 강연이 없습니다.</div>';
       updateFeaturedSaveState();
       return;
     }
-    manualFeaturedList.innerHTML = selected.map(function(course, index){
+    manualFeaturedList.innerHTML = list.map(function(course, index){
+      var isManual = manualFeaturedIds.indexOf(course.id) >= 0;
+      var handleMarkup = '<button class="featured-drag-handle" type="button" aria-label="' + store.escapeHtml(course.title) + ' 순서 이동">⋮⋮</button>';
+      var actionMarkup = isManual
+        ? '<button class="mini-btn" type="button" data-remove-featured="' + store.escapeHtml(course.id) + '">해제</button>'
+        : '';
+      var tagMarkup = '<span class="featured-tag ' + (isManual ? 'manual' : 'auto') + '">' + (isManual ? '수동' : '자동') + '</span>';
       return ''
-        + '<article class="featured-sort-item" data-id="' + store.escapeHtml(course.id) + '">'
-        + '<button class="featured-drag-handle" type="button" aria-label="' + store.escapeHtml(course.title) + ' 순서 이동">⋮⋮</button>'
+        + '<article class="featured-sort-item' + (isManual ? '' : ' is-auto') + '" data-id="' + store.escapeHtml(course.id) + '">'
+        + handleMarkup
         + '<span class="featured-sort-rank">' + (index + 1) + '</span>'
         + '<div class="featured-sort-thumb"><img src="' + store.escapeHtml(course.thumbImg || '/images/logo-ink.png') + '" alt=""/></div>'
-        + '<div class="featured-sort-copy"><strong>' + store.escapeHtml(course.title) + '</strong><span>' + store.escapeHtml(course.instructor || '-') + ' · ' + statusLabel(course.status) + '</span></div>'
-        + '<button class="mini-btn" type="button" data-remove-featured="' + store.escapeHtml(course.id) + '">해제</button>'
+        + '<div class="featured-sort-copy"><strong>' + store.escapeHtml(course.title) + '</strong><span>' + tagMarkup + store.escapeHtml(course.instructor || '-') + ' · ' + statusLabel(course.status) + '</span></div>'
+        + actionMarkup
         + '</article>';
     }).join('');
-    if (window.Sortable && selected.length > 1) {
+    if (window.Sortable && list.length > 1) {
       featuredSortable = window.Sortable.create(manualFeaturedList, {
         animation: 160,
         handle: '.featured-drag-handle',
@@ -1501,6 +1647,8 @@
         dataIdAttr: 'data-id',
         ghostClass: 'featured-sort-ghost',
         onEnd: function(){
+          // 드래그로 순서를 건드리는 순간, 지금 보이는 전체 순서를 그대로 수동 고정한다
+          // (자동으로 채워졌던 항목도 이 시점부터 수동 항목이 된다).
           manualFeaturedIds = featuredSortable.toArray();
           featuredDraftDirty = true;
           renderManualFeatured();
@@ -1691,9 +1839,13 @@
       var publicUrl = publicCourseUrlFromCode(coursePublicCode(course));
       var isManualFeatured = manualFeaturedIds.indexOf(course.id) >= 0;
       var canToggleFeatured = isManualFeatured || store.isOpenForApply(course);
+      var sessionCount = Array.isArray(course.sessions) ? course.sessions.length : 0;
+      var sessionMarkup = sessionCount
+        ? '<span class="group-tag" title="통합 일정 회차 ' + sessionCount + '개">통합일정 · 회차 ' + sessionCount + '개</span>'
+        : '';
       return ''
         + '<tr>'
-        + '<td><div class="course-list-cell"><div class="course-list-thumb"><img src="' + store.escapeHtml(course.thumbImg || '/images/logo-ink.png') + '" alt="' + store.escapeHtml(course.title || '강연 썸네일') + '"/></div><div class="course-list-info"><strong>' + store.escapeHtml(course.title) + '</strong><span class="muted">' + store.escapeHtml(course.category || '-') + (regionLabel ? ' · 지역 ' + store.escapeHtml(regionLabel) : '') + '</span></div></div></td>'
+        + '<td><div class="course-list-cell"><div class="course-list-thumb"><img src="' + store.escapeHtml(course.thumbImg || '/images/logo-ink.png') + '" alt="' + store.escapeHtml(course.title || '강연 썸네일') + '"/></div><div class="course-list-info"><strong>' + store.escapeHtml(course.title) + '</strong><span class="muted">' + store.escapeHtml(course.category || '-') + (regionLabel ? ' · 지역 ' + store.escapeHtml(regionLabel) : '') + '</span>' + sessionMarkup + '</div></div></td>'
         + '<td><span class="type ' + store.escapeHtml(course.type) + '">' + typeLabel(course.type) + '</span></td>'
         + '<td><span class="status ' + store.escapeHtml(course.status) + '">' + statusLabel(course.status) + '</span></td>'
         + '<td>' + store.formatDateKo(course.eventDate) + '<br><span style="color:#667085">' + store.escapeHtml(course.eventTime || '-') + '</span></td>'
@@ -1953,6 +2105,39 @@
   $('eventEndTime').addEventListener('change', syncEventTime);
   $('eventStartTime').addEventListener('input', syncEventTime);
   $('eventEndTime').addEventListener('input', syncEventTime);
+
+  $('addSessionBtn').addEventListener('click', function(){
+    editingSessions.push(sessionToEditState(null));
+    renderSessionRows();
+  });
+
+  $('sessionList').addEventListener('input', function(event){
+    var field = event.target.getAttribute('data-session-field');
+    if (!field) return;
+    var row = event.target.closest('[data-session-id]');
+    var id = row && row.getAttribute('data-session-id');
+    var item = editingSessions.find(function(session){ return session.id === id; });
+    if (!item) return;
+    item[field] = event.target.value;
+  });
+
+  $('sessionList').addEventListener('click', function(event){
+    var removeId = event.target.getAttribute('data-remove-session');
+    var duplicateId = event.target.getAttribute('data-duplicate-session');
+    if (duplicateId) {
+      var index = editingSessions.findIndex(function(session){ return session.id === duplicateId; });
+      if (index === -1) return;
+      var source = editingSessions[index];
+      var copy = Object.assign({}, source, { id: store.createSessionId() });
+      editingSessions.splice(index + 1, 0, copy);
+      renderSessionRows();
+      return;
+    }
+    if (!removeId) return;
+    if (!confirm('이 회차를 삭제할까요?')) return;
+    editingSessions = editingSessions.filter(function(session){ return session.id !== removeId; });
+    renderSessionRows();
+  });
   $('courseTypeToggle').addEventListener('click', function(event){
     var button = event.target.closest('[data-course-type]');
     if (!button) return;
