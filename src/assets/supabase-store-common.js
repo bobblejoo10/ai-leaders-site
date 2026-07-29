@@ -7,9 +7,7 @@
     storageBucket: 'instructor-portfolio'
   };
 
-  var PRIVATE_STORAGE_BUCKETS = {
-    'instructor-portfolio': true
-  };
+  var PRIVATE_STORAGE_BUCKETS = {};
   var SENSITIVE_INSERT_TABLES = {
     lecture_applications: true,
     corporate_inquiries: true,
