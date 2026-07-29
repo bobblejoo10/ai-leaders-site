@@ -392,12 +392,12 @@
               <div class="field">
                 <label for="eventStartTime">강연 시간</label>
                 <div class="time-control">
-                  <select id="eventStartTime" name="eventStartTime" aria-label="강연 시작 시간"></select>
+                  <input type="time" id="eventStartTime" name="eventStartTime" aria-label="강연 시작 시간" step="60"/>
                   <span>~</span>
-                  <select id="eventEndTime" name="eventEndTime" aria-label="강연 종료 시간"></select>
+                  <input type="time" id="eventEndTime" name="eventEndTime" aria-label="강연 종료 시간" step="60"/>
                 </div>
                 <input id="eventTime" name="eventTime" type="hidden"/>
-                <p class="field-help">30분 단위로 시작/종료 시간을 선택합니다.</p>
+                <p class="field-help">시작/종료 시간을 자유롭게 입력할 수 있습니다 (분 단위 제한 없음).</p>
               </div>
               <div class="field">
                 <label for="mealBreakMinutes">식사시간 (분)</label>
@@ -1169,7 +1169,7 @@
     var match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})$/);
     if (!match) return '';
     var hour = Math.max(0, Math.min(23, Number(match[1])));
-    var minute = Number(match[2]) >= 30 ? 30 : 0;
+    var minute = Math.max(0, Math.min(59, Number(match[2])));
     return String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
   }
 
@@ -1178,32 +1178,6 @@
     if (!normalized) return 0;
     var parts = normalized.split(':');
     return Number(parts[0]) * 60 + Number(parts[1]);
-  }
-
-  function populateTimeSelects(){
-    var startSelect = $('eventStartTime');
-    var endSelect = $('eventEndTime');
-    if (startSelect.options.length && endSelect.options.length) return;
-    for (var hour = 7; hour <= 22; hour++) {
-      [0, 30].forEach(function(minute){
-        var value = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
-        [startSelect, endSelect].forEach(function(select){
-          var option = document.createElement('option');
-          option.value = value;
-          option.textContent = value;
-          select.appendChild(option);
-        });
-      });
-    }
-  }
-
-  function ensureTimeOption(select, value){
-    if (!value) return;
-    if ([].some.call(select.options, function(option){ return option.value === value; })) return;
-    var option = document.createElement('option');
-    option.value = value;
-    option.textContent = value;
-    select.appendChild(option);
   }
 
   function parseEventTime(value){
@@ -1221,8 +1195,6 @@
 
   function fillEventTime(value){
     var range = parseEventTime(value);
-    ensureTimeOption($('eventStartTime'), range.start);
-    ensureTimeOption($('eventEndTime'), range.end);
     $('eventStartTime').value = range.start;
     $('eventEndTime').value = range.end;
     syncEventTime();
@@ -1729,7 +1701,7 @@
         + '<td class="instructor-cell"><strong>' + store.escapeHtml(course.instructor || '-') + '</strong><span class="muted">강사</span></td>'
         + '<td><button class="mini-btn featured-toggle' + (isManualFeatured ? ' is-selected' : '') + '" type="button" data-featured-id="' + store.escapeHtml(course.id) + '"' + (canToggleFeatured ? '' : ' disabled') + '>' + (isManualFeatured ? '선택됨' : (canToggleFeatured ? '대표 지정' : '선택 불가')) + '</button></td>'
         + '<td><button class="mini-btn" type="button" data-copy-url="' + store.escapeHtml(publicUrl) + '">복사</button></td>'
-        + '<td><div class="row-actions"><button class="mini-btn" type="button" data-edit="' + store.escapeHtml(course.id) + '">수정</button><button class="mini-btn" type="button" data-delete="' + store.escapeHtml(course.id) + '">삭제</button></div></td>'
+        + '<td><div class="row-actions"><button class="mini-btn" type="button" data-edit="' + store.escapeHtml(course.id) + '">수정</button><button class="mini-btn" type="button" data-duplicate="' + store.escapeHtml(course.id) + '">복제</button><button class="mini-btn" type="button" data-delete="' + store.escapeHtml(course.id) + '">삭제</button></div></td>'
         + '</tr>';
     }).join('');
   }
@@ -1834,10 +1806,15 @@
   rows.addEventListener('click', function(event){
     var editId = event.target.getAttribute('data-edit');
     var deleteId = event.target.getAttribute('data-delete');
+    var duplicateId = event.target.getAttribute('data-duplicate');
     var copyUrl = event.target.getAttribute('data-copy-url');
     var featuredId = event.target.getAttribute('data-featured-id');
     if (featuredId) {
       toggleManualFeatured(featuredId);
+      return;
+    }
+    if (duplicateId) {
+      duplicateCourse(duplicateId);
       return;
     }
     if (copyUrl) {
@@ -1882,6 +1859,22 @@
       alert(error.message || '대표 강연 순서를 저장하지 못했습니다.');
     }
   });
+
+  function duplicateCourse(id){
+    var course = courses.find(function(item){ return item.id === id; });
+    if (!course) return;
+    var clonedNotice = Object.assign({}, course.applicationNotice || {}, { publicCode: '', public_code: '' });
+    var clone = Object.assign({}, course, {
+      id: '',
+      publicCode: store.createPublicCode('', courseCodesExcept('')),
+      status: 'open',
+      applicantCount: 0,
+      featuredOrder: null,
+      applicationNotice: clonedNotice
+    });
+    showEditorView('new', clone);
+    $('editorSub').textContent = '"' + course.title + '" 강연 정보를 복제했습니다. 날짜·지역 등을 수정한 뒤 저장하면 새 강연으로 등록됩니다.';
+  }
 
   async function deleteCourse(id){
     var course = courses.find(function(item){ return item.id === id; });
@@ -1956,9 +1949,10 @@
     renderRows();
   });
 
-  populateTimeSelects();
   $('eventStartTime').addEventListener('change', syncEventTime);
   $('eventEndTime').addEventListener('change', syncEventTime);
+  $('eventStartTime').addEventListener('input', syncEventTime);
+  $('eventEndTime').addEventListener('input', syncEventTime);
   $('courseTypeToggle').addEventListener('click', function(event){
     var button = event.target.closest('[data-course-type]');
     if (!button) return;
