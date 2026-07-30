@@ -87,7 +87,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 <link rel="icon" href="../favicon.ico" type="image/x-icon"/>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" media="print" onload="this.media='all'"/><noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"/></noscript>
 <link rel="stylesheet" href="../shared.css"/>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17060350229"></script>
@@ -168,7 +168,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .cp-head b { color:#171a2b; }
   .cp-badge { display:inline-flex; align-items:center; font-size:18px; font-weight:700; color:#0172fe; }
   .cp-desc { margin-top:14px; font-size:16px; color:#5b6070; line-height:1.6; letter-spacing:-.02em; word-break:keep-all; }
-  .cp-meta { margin-top:14px; font-size:12.5px; color:#8b90a0; font-style:italic; word-break:keep-all; }
+  .cp-meta { margin-top:14px; font-size:12.5px; color:#5b6070; font-style:italic; word-break:keep-all; }
   .cp-tags-box { background:#fff; border-radius:16px; padding:34px 20px; box-shadow:0 6px 16px rgba(79,86,180,.08); overflow:hidden; }
   .cp-tags-row { display:flex; gap:9px; width:max-content; }
   .cp-tags-row + .cp-tags-row { margin-top:9px; }
@@ -194,6 +194,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     color:#a7abbe; font-size:14px; font-weight:600; overflow:hidden; box-shadow:0 6px 16px rgba(79,86,180,.08); }
   .cp-image img { width:100%; height:100%; object-fit:cover; display:block; }
   .cp-image svg { width:100%; height:100%; display:block; }
+  .cp-image .cp3-img { display:none; }
+  @media (max-width:760px){
+    .cp-image .cp3-img { display:block; width:100%; height:auto; }
+    #cp3-svg { display:none; }
+  }
   #cp3-svg .cp3-step { opacity:0; transform:translateY(-16px); transition:opacity .55s ease, transform .55s ease; }
   #cp3-svg.play .cp3-s1 { opacity:1; transform:none; transition-delay:.18s; }
   #cp3-svg.play .cp3-s2 { opacity:1; transform:none; transition-delay:.50s; }
@@ -225,7 +230,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .cp-num { font-size:16px; }
     .cp-head { font-size:20px; }
     .cp-badge { font-size:16px; }
-    .cp-desc { font-size:14px; margin-top:10px; }
+    .cp-desc { display:none; }
     .cp-meta { font-size:13px; margin-top:10px; }
     .cp-tags-box { padding:16px 14px; border-radius:14px; }
     .cp-tags-row { gap:7px; animation:none !important; }
@@ -480,6 +485,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <p class="cp-meta">특강형 · 2~3시간 · 경영진 대상</p>
           </div>
           <div class="cp-image">
+            <img class="cp3-img" src="/images/corp-curriculum-diagram.webp" alt="AI 도입 전략 · 업무 혁신 실행 · 조직 변화 관리 3단계 전략" width="480" height="262" loading="eager" decoding="async"/>
             <svg id="cp3-svg" viewBox="0 0 480 262" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AI 도입 전략, 업무 혁신 실행, 조직 변화 관리 3단계 전략 다이어그램" font-family="'Pretendard','Noto Sans KR','Malgun Gothic',sans-serif">
               <defs>
                 <linearGradient id="cp3-pill" x1="0" y1="0" x2="1" y2="1">
