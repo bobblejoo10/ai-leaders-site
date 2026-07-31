@@ -213,6 +213,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .slides{ position:absolute; inset:0; z-index:0; }
   .slide{ position:absolute; inset:0; opacity:0; transition:opacity .9s ease; }
   .slide.active{ opacity:1; }
+  .hero-loading{ display:flex; align-items:center; justify-content:center; background:#0d1b2f; }
+  .hero-spinner{ width:44px; height:44px; border:4px solid rgba(255,255,255,.25); border-top-color:#fff; border-radius:50%; animation:heroSpin .8s linear infinite; }
+  @keyframes heroSpin{ to{ transform:rotate(360deg); } }
   .slide video, .slide img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1); transform-origin:center center; }
   .slide.active video, .slide.active img{ animation:heroSlowZoom 7s ease-out forwards; }
   @keyframes heroSlowZoom{
@@ -2060,7 +2063,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header class="hero" id="hero">
   <div class="slides" id="slides">
     <!-- 각 slide 안에 <img src> 또는 <video autoplay muted loop playsinline> 를 넣으면 폴백 배경을 덮습니다. -->
-    <div class="slide s1 active"><img src="/images/home-hero-default.webp" alt="AI 강사 히어로 이미지" class="hero-bg-img" width="1600" height="900" decoding="async" fetchpriority="high"></div>
+    <div class="slide s1 active hero-loading" aria-hidden="true"><span class="hero-spinner"></span></div>
   </div>
   <div class="hero-scrim" aria-hidden="true"></div>
 
