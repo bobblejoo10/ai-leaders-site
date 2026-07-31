@@ -184,6 +184,10 @@ h3.sh {
   * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
   .nav.scrolled, .rv-card, .prog-card { background: #fff !important; }
 }
+/* 모바일: iOS에서 스크롤 중 손가락이 카드 위를 지날 때 :hover가 발동해 썸네일이 확대/전환되며 반짝이는 현상 방지 */
+@media (max-width: 768px) {
+  .course-thumb img { transition: none !important; transform: translateZ(0) !important; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+}
 .field-popup {
   position: absolute; top: 100%; left: 0; margin-top: 8px; z-index: 40;
   display: inline-flex; align-items: center; gap: 7px;

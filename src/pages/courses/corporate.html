@@ -362,6 +362,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   @keyframes inqC { to { transform:translate(-16%,22%) scale(.9); } }
   @keyframes inqD { to { transform:translate(24%,-14%) scale(1.1); } }
   @media (prefers-reduced-motion: reduce){ .inq-shader .sblob { animation:none; } }
+  /* 모바일: 배경 blob 애니메이션 정지 + 블러 완화 + GPU 레이어 해제 (iOS 초기 합성/버벅임 감소, 배경 모양은 유지) */
+  @media (max-width:760px){
+    .fblob, .inq-shader .sblob { animation:none !important; will-change:auto !important; filter:blur(60px); }
+  }
 
   @media (max-width:900px) { .prog-grid { grid-template-columns:1fr; } .process-grid { grid-template-columns:repeat(2,1fr); } .process-grid .proc-step { border-right:none; border-bottom:1px solid var(--line); } .process-grid .proc-step:last-child { border-bottom:none; } .process-grid .proc-step::after { display:none; } .inquiry-layout { grid-template-columns:1fr; gap:40px; } }
 </style>
