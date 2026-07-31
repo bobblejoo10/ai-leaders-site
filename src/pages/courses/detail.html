@@ -146,6 +146,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
   /* 썸네일 (1:1 정사각 이미지) */
   .ch-thumb-col { display:flex; flex-direction:column; gap:22px; max-width:386px; width:100%; justify-self:center; margin-top:104px; }
+  .ch-inner:has(.ch-session-picker-title) .ch-thumb-col { margin-top:206px; }
   .ch-thumb-mobile { display:none; }
   .ch-thumb { aspect-ratio:1/1; width:100%; border-radius:16px; overflow:hidden; position:relative; box-shadow:0 22px 54px rgba(12,24,40,.16); border:1px solid rgba(12,24,40,.08); }
   .ch-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -335,8 +336,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     body #courseHero .ch-info-row { flex-direction:row; align-items:baseline; gap:12px; }
     body #courseHero .ch-info-label { flex:0 0 56px !important; }
     .ch-session-picker-mobile { display:block !important; }
+    .ch-session-picker-title { display:none !important; }
   }
   .ch-session-picker-mobile { display:none; margin:16px 0; }
+  .ch-session-picker-title { margin:16px 0 24px; max-width:560px; width:100%; }
+  .ch-session-picker-title .form-select { width:100%; }
   #modalSessionPicker:empty { display:none; }
   #modalSessionPicker { margin-bottom:18px; }
   .ch-session-picker select { border-radius:12px; }
@@ -796,12 +800,13 @@ function renderSessionPicker(managed, baseCourse) {
 
   const selects = [];
 
-  // 1) 히어로 썸네일 밑 "신청하기" 버튼 자리(PC) — 버튼은 드롭다운 아래로 내려간다.
-  const thumbBtn = document.getElementById('thumbApplyBtn');
-  if (thumbBtn && thumbBtn.parentNode) {
-    const thumbWrap = buildPicker('sessionSelectThumb');
-    thumbBtn.parentNode.insertBefore(thumbWrap, thumbBtn);
-    selects.push(thumbWrap.querySelector('select'));
+  // 1) 강연 제목 바로 아래 (PC 전용 — 모바일에서는 숨김, 모바일은 3번 위치 그대로 사용)
+  const titleEl = document.getElementById('heroTitle');
+  if (titleEl && titleEl.parentNode) {
+    const titleWrap = buildPicker('sessionSelectTitle');
+    titleWrap.classList.add('ch-session-picker-title');
+    titleEl.parentNode.insertBefore(titleWrap, titleEl.nextSibling);
+    selects.push(titleWrap.querySelector('select'));
   }
 
   // 2) 우측 신청 카드(강연정보 위, PC)
