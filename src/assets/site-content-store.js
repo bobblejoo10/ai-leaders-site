@@ -253,19 +253,20 @@
     if (!api || !api.hasConfig()) {
       throw new Error(api ? api.defaultErrorMessage : '데이터를 불러올 수 없습니다.');
     }
+    // 네 가지를 동시에(병렬) 불러온다. FAQ 테이블(site_faqs)이 아직 없거나 조회에
+    // 실패해도 배너/강사/옵션 로딩은 막히지 않도록 FAQ 조회만 실패 시 빈 목록으로 처리한다.
+    // (순차로 기다리면 히어로 배너 렌더가 늦어져 기본 이미지가 잠깐 깜빡이므로 반드시 병렬로 둔다.)
     var rows = await Promise.all([
       api.selectRows('site_banners', { select: '*' }),
       api.selectRows('instructors', { select: '*' }),
-      api.selectRows('form_options', { select: '*' })
+      api.selectRows('form_options', { select: '*' }),
+      api.selectRows('site_faqs', { select: '*' }).catch(function () { return []; })
     ]);
-    // FAQ 테이블(site_faqs)이 아직 없거나 조회에 실패해도 배너/강사/옵션 로딩은
-    // 막히지 않도록 FAQ 는 별도로 불러오고 실패 시 빈 목록으로 처리한다.
-    var faqRows = await api.selectRows('site_faqs', { select: '*' }).catch(function () { return []; });
     return setCache({
       banners: rows[0].map(bannerFromRow),
       instructors: rows[1].map(instructorFromRow),
       options: rows[2].map(optionFromRow),
-      faqs: (faqRows || []).map(faqFromRow)
+      faqs: (rows[3] || []).map(faqFromRow)
     });
   }
 
