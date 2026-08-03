@@ -12,9 +12,10 @@
   function titleWithLocation(title, location) {
     var text = String(title || '').trim();
     var place = String(location || '').trim();
+    // 관리자가 강연명에 이미 대괄호로 지역 표시를 직접 입력했으면 그대로 존중하고 덮어쓰지 않는다.
+    if (/^\[[^\]]+\]/.test(text)) return text;
     if (!place) return text;
     if (!text) return '[' + place + ']';
-    if (/^\[[^\]]+\]/.test(text)) return text.replace(/^\[[^\]]+\]/, '[' + place + ']');
     return '[' + place + '] ' + text;
   }
 
@@ -180,9 +181,31 @@
   }
 
   function instructorMarkup(course) {
-    var name = String(course.instructor || '').trim();
-    if (!name) return '';
-    var label = /강사$/.test(name) ? name : name + ' 강사';
+    var names = [];
+    if (Array.isArray(course.sessions) && course.sessions.length) {
+      var seen = {};
+      course.sessions.forEach(function (session) {
+        var sessionName = String(session && session.instructor || '').trim();
+        if (sessionName && !seen[sessionName]) {
+          seen[sessionName] = true;
+          names.push(sessionName);
+        }
+      });
+    }
+    if (!names.length) {
+      var single = String(course.instructor || '').trim();
+      if (single) names.push(single);
+    }
+    if (!names.length) return '';
+    // "아이온"이 포함돼 있으면 항상 맨 앞에 나오게 한다.
+    names.sort(function (a, b) {
+      if (a === '아이온' && b !== '아이온') return -1;
+      if (b === '아이온' && a !== '아이온') return 1;
+      return 0;
+    });
+    var label = names.map(function (name) {
+      return /강사$/.test(name) ? name : name + ' 강사';
+    }).join(', ');
     return '<p class="cc-instructor">' + store().escapeHtml(label) + '</p>';
   }
 
@@ -215,7 +238,7 @@
     var muted = /마감|완료|비공개/.test(status) ? ' style="color:#555;"' : '';
     var title = displayTitle(course);
     var thumb = typeof s.courseThumbnail === 'function' ? s.courseThumbnail(course) : (course.thumbImg || '/images/logo-ink.png');
-    var loading = index === 0 ? 'eager' : 'lazy';
+    var loading = index < 6 ? 'eager' : 'lazy';
     var fallbackCode = global.AiLeadersUtils && global.AiLeadersUtils.stablePublicCode
       ? global.AiLeadersUtils.stablePublicCode(course.id)
       : course.id;

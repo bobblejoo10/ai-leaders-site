@@ -6,7 +6,7 @@
 <title>사이트 콘텐츠 | AI리더스협회</title>
 <link rel="icon" href="/favicon.ico"/>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" media="print" onload="this.media='all'"/><noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"/></noscript>
 <link rel="stylesheet" href="/shared.css"/>
 <style>
   :root{--admin-bg:#f4f7fb;--admin-panel:#fff;--admin-ink:#101828;--admin-muted:#667085;--admin-line:#d9e2ec;--admin-brand:#0172fe;--admin-good:#067647;--admin-danger:#b42318}
@@ -98,7 +98,6 @@
             </div>
             <div class="form-actions">
               <button class="btn-admin primary" type="submit">저장</button>
-              <button class="btn-admin ghost" type="button" data-preview-target="/">랜딩 미리보기</button>
               <button class="btn-admin danger" type="button" id="bannerDeleteBtn">삭제</button>
             </div>
           </form>
@@ -133,8 +132,6 @@
             </div>
             <div class="form-actions">
               <button class="btn-admin primary" id="instructorSaveBtn" type="submit">저장</button>
-              <button class="btn-admin ghost" type="button" data-preview-target="/">랜딩 미리보기</button>
-              <button class="btn-admin ghost" type="button" data-preview-target="/about/">소개 미리보기</button>
               <button class="btn-admin danger" type="button" id="instructorDeleteBtn">삭제</button>
             </div>
           </form>
@@ -162,8 +159,6 @@
             </div>
             <div class="form-actions">
               <button class="btn-admin primary" type="submit">저장</button>
-              <button class="btn-admin ghost" type="button" data-preview-target="/corporate/">출강문의 미리보기</button>
-              <button class="btn-admin ghost" type="button" data-preview-target="/instructor-apply/">강사지원 미리보기</button>
               <button class="btn-admin danger" type="button" id="optionDeleteBtn">삭제</button>
             </div>
           </form>
@@ -191,7 +186,6 @@
             </div>
             <div class="form-actions">
               <button class="btn-admin primary" type="submit">저장</button>
-              <button class="btn-admin ghost" type="button" data-preview-target="/faq/">FAQ 미리보기</button>
               <button class="btn-admin danger" type="button" id="faqDeleteBtn">삭제</button>
             </div>
           </form>
@@ -206,9 +200,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7/dist/umd/supabase.min.js" integrity="sha384-BmlQlKlDvXvKoxkn5OQuUo/aJQCTXeB+Kls6EccBmG4Kf8AXvp89RtO9MtPxP/r5" crossorigin="anonymous"></script>
-<script src="/assets/supabase-store-common.js?v=20260721-form-submit-1"></script>
+<script src="/assets/supabase-store-common.js?v=20260729-storage-fix-1"></script>
 <script src="/assets/admin-auth.js?v=20260719-secure-admin-1"></script>
-<script src="/assets/site-content-store.js?v=20260727-faq-2"></script>
+<script src="/assets/site-content-store.js?v=20260729-cache-refresh-1"></script>
 <script src="/assets/vendor/sortable.min.js?v=1.15.6-local"></script>
 <script src="/assets/vendor/compressor.min.js?v=1.3.0-local"></script>
 <script src="/assets/image-upload-optimizer.js?v=20260721-egress-pilot-1"></script>
@@ -218,8 +212,6 @@
   var state = { banners: [], instructors: [], options: [], faqs: [] };
   var currentTab = 'banner';
   var sortableInstances = {};
-  var PREVIEW_PREFIX = 'aiLeadersSiteContentPreview:';
-  var PREVIEW_TTL = 60 * 60 * 1000;
   var DEFAULT_HERO_IMAGE = '/images/home-hero-default.jpg';
   var instructorPhotoUploading = false;
 
@@ -314,7 +306,7 @@
   function hydrate(){
     state = store.getState();
     renderAll();
-    setNotice('콘텐츠 데이터를 불러왔습니다. 미리보기로 확인한 뒤 저장하면 Supabase에 즉시 반영됩니다.');
+    setNotice('콘텐츠 데이터를 불러왔습니다. 저장하면 Supabase에 즉시 반영됩니다.');
   }
 
   function renderAll(){
@@ -551,84 +543,6 @@
     return sortByOrder(items);
   }
 
-  function upsertPreviewItem(items, item, prefix){
-    var next = items.slice();
-    var draft = Object.assign({}, item);
-    if (!draft.id) draft.id = 'preview-' + prefix;
-    var index = next.findIndex(function(entry){ return entry.id === draft.id; });
-    if (index >= 0) next[index] = draft;
-    else next.push(draft);
-    return sortByOrder(next);
-  }
-
-  function buildPreviewState(tab){
-    var draft = clone(state);
-    if (tab === 'banner') {
-      draft.banners = upsertPreviewItem(draft.banners || [], collectBanner(), 'banner');
-    } else if (tab === 'instructor') {
-      draft.instructors = upsertPreviewItem(draft.instructors || [], collectInstructor(), 'instructor');
-    } else if (tab === 'option') {
-      draft.options = upsertPreviewItem(draft.options || [], collectOption(), 'option');
-    } else if (tab === 'faq') {
-      draft.faqs = upsertPreviewItem(draft.faqs || [], collectFaq(), 'faq');
-    }
-    return draft;
-  }
-
-  function encodePreview(payload){
-    return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-  }
-
-  function cleanupPreviewCache(){
-    try {
-      Object.keys(localStorage).forEach(function(key){
-        if (key.indexOf(PREVIEW_PREFIX) !== 0) return;
-        try {
-          var payload = JSON.parse(localStorage.getItem(key) || '{}');
-          if (!payload.expiresAt || payload.expiresAt < Date.now()) localStorage.removeItem(key);
-        } catch (error) {
-          localStorage.removeItem(key);
-        }
-      });
-    } catch (error) {}
-  }
-
-  function openPreview(target, tab){
-    var section = document.querySelector('[data-section="' + tab + '"]');
-    var form = section ? section.querySelector('form') : null;
-    if (form && typeof form.reportValidity === 'function' && !form.reportValidity()) {
-      setNotice('미리보기 전에 표시된 필수 입력값(예: 제목)을 먼저 채워 주세요.', true);
-      return;
-    }
-
-    var id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    var payload = {
-      version: 1,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + PREVIEW_TTL,
-      state: buildPreviewState(tab)
-    };
-    var json = JSON.stringify(payload);
-    cleanupPreviewCache();
-    try {
-      localStorage.setItem(PREVIEW_PREFIX + id, json);
-    } catch (error) {}
-
-    var encoded = encodePreview(payload);
-    var separator = target.indexOf('?') === -1 ? '?' : '&';
-    var url = target + separator + 'sitePreview=' + encodeURIComponent(id) + '#sitePreviewData=' + encodeURIComponent(encoded);
-
-    // 임시 링크를 만들어 클릭하는 방식으로 새 탭을 연다. window.open보다 팝업 차단기에 덜 막힌다.
-    var opener = document.createElement('a');
-    opener.href = url;
-    opener.target = '_blank';
-    opener.rel = 'noopener';
-    document.body.appendChild(opener);
-    opener.click();
-    document.body.removeChild(opener);
-    setNotice('미리보기 탭을 열었습니다. 저장 전까지 공개 페이지에는 반영되지 않습니다. 새 탭이 열리지 않으면 브라우저의 팝업 차단을 해제해 주세요.');
-  }
-
   async function saveWithStatus(action, successMessage){
     try {
       setNotice('저장 중입니다.');
@@ -668,14 +582,6 @@
       else return;
       event.preventDefault();
       activateTab(tabButtons[nextIndex].getAttribute('data-tab'), true);
-    });
-  });
-
-  document.querySelectorAll('[data-preview-target]').forEach(function(button){
-    button.addEventListener('click', function(){
-      var section = button.closest('[data-section]');
-      var tab = section ? section.getAttribute('data-section') : currentTab;
-      openPreview(button.getAttribute('data-preview-target'), tab);
     });
   });
 

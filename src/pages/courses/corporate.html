@@ -87,7 +87,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 <link rel="icon" href="../favicon.ico" type="image/x-icon"/>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" media="print" onload="this.media='all'"/><noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"/></noscript>
 <link rel="stylesheet" href="../shared.css"/>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17060350229"></script>
@@ -168,7 +168,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .cp-head b { color:#171a2b; }
   .cp-badge { display:inline-flex; align-items:center; font-size:18px; font-weight:700; color:#0172fe; }
   .cp-desc { margin-top:14px; font-size:16px; color:#5b6070; line-height:1.6; letter-spacing:-.02em; word-break:keep-all; }
-  .cp-meta { margin-top:14px; font-size:12.5px; color:#8b90a0; font-style:italic; word-break:keep-all; }
+  .cp-meta { margin-top:14px; font-size:12.5px; color:#5b6070; font-style:italic; word-break:keep-all; }
   .cp-tags-box { background:#fff; border-radius:16px; padding:34px 20px; box-shadow:0 6px 16px rgba(79,86,180,.08); overflow:hidden; }
   .cp-tags-row { display:flex; gap:9px; width:max-content; }
   .cp-tags-row + .cp-tags-row { margin-top:9px; }
@@ -178,7 +178,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   @keyframes cpMarqueeRight { from{ transform:translateX(-50%); } to{ transform:translateX(0); } }
   @media (prefers-reduced-motion: reduce){ .cp-tags-row{ animation:none !important; } }
   .cp-tags-row span { font-size:14px; font-weight:600; padding:8px 15px; border-radius:999px; background:#e5e6f2; color:#5b6070; white-space:nowrap; transition:background .35s ease, color .35s ease, box-shadow .35s ease; }
-  .cp-tags-row span.on { background:#0172fe; color:#fff; box-shadow:0 6px 14px rgba(1,114,254,.28); }
+  .cp-tags-row span.on { background:#186ed6; color:#fff; box-shadow:0 6px 14px rgba(24,110,214,.28); }
   .cp-tiles { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .cp-tile { display:flex; align-items:center; gap:14px; text-align:left; background:#fff; border-radius:14px; padding:26px 18px; box-shadow:0 6px 16px rgba(79,86,180,.08); }
   .cp-ticon { flex:0 0 auto; width:46px; height:46px; margin:0; border-radius:12px; background:#e8f1ff;
@@ -194,11 +194,17 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     color:#a7abbe; font-size:14px; font-weight:600; overflow:hidden; box-shadow:0 6px 16px rgba(79,86,180,.08); }
   .cp-image img { width:100%; height:100%; object-fit:cover; display:block; }
   .cp-image svg { width:100%; height:100%; display:block; }
+  .cp-image .cp3-img { display:none; }
+  @media (max-width:760px){
+    .cp-image .cp3-img { display:block; width:100%; height:auto; }
+    #cp3-svg { display:none; }
+  }
   #cp3-svg .cp3-step { opacity:0; transform:translateY(-16px); transition:opacity .55s ease, transform .55s ease; }
   #cp3-svg.play .cp3-s1 { opacity:1; transform:none; transition-delay:.18s; }
   #cp3-svg.play .cp3-s2 { opacity:1; transform:none; transition-delay:.50s; }
   #cp3-svg.play .cp3-s3 { opacity:1; transform:none; transition-delay:.82s; }
   @media (prefers-reduced-motion: reduce){ #cp3-svg .cp3-step { opacity:1; transform:none; transition:none; } }
+  @media (max-width:760px){ #cp3-svg .cp3-step { opacity:1; transform:none; transition:none; } }
   .curric-divider { max-width:1000px; margin:32px auto 0; display:flex; align-items:center; justify-content:center; }
   .curric-divider .curric-plus { color:#0172fe; font-size:34px; font-weight:800; line-height:1; }
   .curric-toggle { display:none; width:100%; max-width:1000px; margin:32px auto 0; box-sizing:border-box; align-items:center; justify-content:space-between; gap:12px; background:#fff; border:1px solid #e3ebf7; border-radius:14px; padding:16px 20px; box-shadow:0 6px 16px rgba(79,86,180,.08); font-size:15px; font-weight:800; color:#171a2b; cursor:pointer; text-align:left; }
@@ -224,10 +230,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .cp-num { font-size:16px; }
     .cp-head { font-size:20px; }
     .cp-badge { font-size:16px; }
-    .cp-desc { font-size:14px; margin-top:10px; }
+    .cp-desc { display:none; }
     .cp-meta { font-size:13px; margin-top:10px; }
     .cp-tags-box { padding:16px 14px; border-radius:14px; }
-    .cp-tags-row { gap:7px; }
+    .cp-tags-row { gap:7px; animation:none !important; }
+    .cp-tags-box .cp-tags-row:nth-child(1){ transform:translateX(-240px) !important; }
+    .cp-tags-box .cp-tags-row:nth-child(2){ transform:translateX(-250px) !important; }
+    .cp-tags-box .cp-tags-row:nth-child(3){ transform:translateX(-190px) !important; }
     .cp-tags-row + .cp-tags-row { margin-top:7px; }
     .cp-tags-row span { font-size:13px; padding:7px 13px; }
     .cp-tile { padding:18px 12px; }
@@ -353,6 +362,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   @keyframes inqC { to { transform:translate(-16%,22%) scale(.9); } }
   @keyframes inqD { to { transform:translate(24%,-14%) scale(1.1); } }
   @media (prefers-reduced-motion: reduce){ .inq-shader .sblob { animation:none; } }
+  /* 모바일: 배경 blob 애니메이션 정지 + 블러 완화 + GPU 레이어 해제 (iOS 초기 합성/버벅임 감소, 배경 모양은 유지) */
+  @media (max-width:760px){
+    .fblob, .inq-shader .sblob { animation:none !important; will-change:auto !important; filter:blur(60px); }
+  }
 
   @media (max-width:900px) { .prog-grid { grid-template-columns:1fr; } .process-grid { grid-template-columns:repeat(2,1fr); } .process-grid .proc-step { border-right:none; border-bottom:1px solid var(--line); } .process-grid .proc-step:last-child { border-bottom:none; } .process-grid .proc-step::after { display:none; } .inquiry-layout { grid-template-columns:1fr; gap:40px; } }
 </style>
@@ -476,6 +489,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <p class="cp-meta">특강형 · 2~3시간 · 경영진 대상</p>
           </div>
           <div class="cp-image">
+            <img class="cp3-img" src="/images/corp-curriculum-diagram.webp" alt="AI 도입 전략 · 업무 혁신 실행 · 조직 변화 관리 3단계 전략" width="480" height="262" loading="eager" decoding="async"/>
             <svg id="cp3-svg" viewBox="0 0 480 262" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AI 도입 전략, 업무 혁신 실행, 조직 변화 관리 3단계 전략 다이어그램" font-family="'Pretendard','Noto Sans KR','Malgun Gothic',sans-serif">
               <defs>
                 <linearGradient id="cp3-pill" x1="0" y1="0" x2="1" y2="1">
@@ -624,7 +638,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const cp3=document.getElementById('cp3-svg');
   if(cp3){
     const cp3spine=document.getElementById('cp3-spine-anim');
-    const cp3reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const cp3reduce=window.matchMedia&&(window.matchMedia('(prefers-reduced-motion: reduce)').matches||window.matchMedia('(max-width:760px)').matches);
     if(cp3reduce){cp3.classList.add('play');const l=document.getElementById('cp3-spine');if(l)l.setAttribute('y2','262');}
     else{const cp3io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){cp3.classList.add('play');if(cp3spine&&cp3spine.beginElement){try{cp3spine.beginElement();}catch(_){}}cp3io.unobserve(cp3);}}),{threshold:0.35});cp3io.observe(cp3);}
   }
@@ -663,11 +677,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const procFlow=document.querySelector('.proc-flow');
   const procCards=Array.prototype.slice.call(document.querySelectorAll('.proc-flow-card'));
   if(procFlow && procCards.length){
+    var procMQ = window.matchMedia && window.matchMedia('(max-width:760px)');
+    function procMobile(){ return !!(procMQ && procMQ.matches); }
     const procRo=new IntersectionObserver(entries=>entries.forEach(e=>{
       if(e.isIntersecting){
         let i=0;
         function step(){
           procCards.forEach(c=>c.classList.remove('is-hover'));
+          if(procMobile()) return;
           procCards[i].classList.add('is-hover');
           i=(i+1)%procCards.length;
         }
@@ -676,6 +693,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         procRo.unobserve(e.target);
       }
     }),{threshold:0.2});
+    if(procMQ && procMQ.addEventListener){ procMQ.addEventListener('change', function(){ if(procMobile()) procCards.forEach(function(c){ c.classList.remove('is-hover'); }); }); }
     procRo.observe(procFlow);
   }
 })();
@@ -685,10 +703,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const rows=rowEls.map(r=>Array.prototype.slice.call(r.querySelectorAll('span')));
   const hasChips=rows.some(r=>r.length);
   if(tagsBox && hasChips){
+    var cpMQ = window.matchMedia && window.matchMedia('(max-width:760px)');
+    function cpTagsMobile(){ return !!(cpMQ && cpMQ.matches); }
     // 하나의 타이머로 2초마다 on/off를 판정하되, 같은 줄에서 바로 옆 태그와는
     // 동시에 켜지지 않도록 하고, 줄마다 최소 1개는 항상 켜져 있도록 보장
     const onChance=0.16;
     function tick(){
+      if(cpTagsMobile()){
+        // 모바일: 마퀴 정지 + 법무/개발·IT/리서치 3개만 클릭(on) 고정
+        rows.forEach(function(arr){ arr.forEach(function(chip){ var t=(chip.textContent||'').trim(); chip.classList.toggle('on', t.indexOf('법무')===0 || t.indexOf('개발')===0 || t.indexOf('리서치')===0); }); });
+        return;
+      }
       rows.forEach(function(arr){
         if(!arr.length) return;
         const onFlags=new Array(arr.length).fill(false);
@@ -702,6 +727,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         arr.forEach(function(chip,i){ chip.classList.toggle('on', onFlags[i]); });
       });
     }
+    if(cpMQ && cpMQ.addEventListener){ cpMQ.addEventListener('change', tick); }
     const tagsRo=new IntersectionObserver(entries=>entries.forEach(e=>{
       if(e.isIntersecting){
         tick(); // 첫 로딩 시 일부는 바로 켜진 상태로 시작

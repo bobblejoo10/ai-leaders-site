@@ -81,6 +81,8 @@
     item.courseId = String(item.courseId || '').trim();
     item.courseTitle = String(item.courseTitle || '').trim();
     item.courseType = item.courseType === 'paid' ? 'paid' : 'free';
+    item.eventDate = String(item.eventDate || '').trim();
+    item.eventTime = String(item.eventTime || '').trim();
     item.name = String(item.name || '').trim();
     item.phone = String(item.phone || '').trim();
     item.email = String(item.email || '').trim();
@@ -106,6 +108,8 @@
       courseId: row.course_id,
       courseTitle: row.course_title,
       courseType: row.course_type,
+      eventDate: row.event_date,
+      eventTime: row.event_time,
       name: row.name,
       phone: row.phone,
       email: row.email,
@@ -132,6 +136,8 @@
       course_id: item.courseId || null,
       course_title: item.courseTitle || null,
       course_type: item.courseType,
+      event_date: item.eventDate || null,
+      event_time: item.eventTime || null,
       name: item.name || null,
       phone: item.phone || null,
       email: item.email || null,
@@ -254,6 +260,9 @@
       item.courseId = course.id;
       item.courseTitle = item.courseTitle || course.title;
       item.courseType = course.type === 'paid' ? 'paid' : 'free';
+      // 회차(통합 일정)를 골라서 신청한 게 아니면, 강연 자체의 현재 일정을 기록해 둔다.
+      item.eventDate = item.eventDate || course.eventDate || '';
+      item.eventTime = item.eventTime || course.eventTime || '';
     }
     item.isDuplicate = loaded && cache.length ? hasDuplicate(item) : false;
     var rows = await api.insertRows('lecture_applications', [toRow(item)]);

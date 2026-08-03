@@ -91,7 +91,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 <link crossorigin="" href="https://cdn.jsdelivr.net" rel="preconnect"/>
 <link crossorigin="" href="https://wdghlbswlvwlmkywiibr.supabase.co" rel="preconnect"/>
-<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" rel="stylesheet"/></noscript>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17060350229"></script>
 <script>
@@ -213,6 +213,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .slides{ position:absolute; inset:0; z-index:0; }
   .slide{ position:absolute; inset:0; opacity:0; transition:opacity .9s ease; }
   .slide.active{ opacity:1; }
+  .hero-loading{ display:flex; align-items:center; justify-content:center; background:#0d1b2f; }
+  .hero-spinner{ width:44px; height:44px; border:4px solid rgba(255,255,255,.25); border-top-color:#fff; border-radius:50%; animation:heroSpin .8s linear infinite; }
+  @keyframes heroSpin{ to{ transform:rotate(360deg); } }
   .slide video, .slide img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1); transform-origin:center center; }
   .slide.active video, .slide.active img{ animation:heroSlowZoom 7s ease-out forwards; }
   @keyframes heroSlowZoom{
@@ -2060,7 +2063,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header class="hero" id="hero">
   <div class="slides" id="slides">
     <!-- 각 slide 안에 <img src> 또는 <video autoplay muted loop playsinline> 를 넣으면 폴백 배경을 덮습니다. -->
-    <div class="slide s1 active"><img src="/images/home-hero-default.webp" alt="AI 강사 히어로 이미지" class="hero-bg-img" width="1600" height="900" decoding="async" fetchpriority="high"></div>
+    <div class="slide s1 active hero-loading" aria-hidden="true"><span class="hero-spinner"></span></div>
   </div>
   <div class="hero-scrim" aria-hidden="true"></div>
 
@@ -2105,7 +2108,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </a>
 <a class="course-card" href="/course/?c=cpn1kbt">
 <div class="course-thumb">
-<img alt="[서초] 클로드 실전 활용법" src="/images/course-thumb-claude.webp" width="720" height="720" loading="lazy" decoding="async"/>
+<img alt="[서초] 클로드 실전 활용법" src="/images/course-thumb-claude.webp" width="720" height="720" loading="eager" decoding="async"/>
 </div>
 <div class="course-body">
 <h3>[서초] 클로드 실전 활용법</h3>
@@ -2117,7 +2120,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </a>
 <a class="course-card" href="/course/?c=cda1s46">
 <div class="course-thumb">
-<img alt="[종로] 제미나이 완벽 실무 활용법" src="/images/course-thumb-ai.webp" width="720" height="720" loading="lazy" decoding="async"/>
+<img alt="[종로] 제미나이 완벽 실무 활용법" src="/images/course-thumb-ai.webp" width="720" height="720" loading="eager" decoding="async"/>
 </div>
 <div class="course-body">
 <h3>[종로] 제미나이 완벽 실무 활용법</h3>
@@ -2129,7 +2132,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </a>
 <a class="course-card" href="/course/?c=c1f0wjd">
 <div class="course-thumb">
-<img alt="[송파] 제미나이 완벽 실무 활용법" src="/images/course-thumb-gemini.webp" width="720" height="720" loading="lazy" decoding="async"/>
+<img alt="[송파] 제미나이 완벽 실무 활용법" src="/images/course-thumb-gemini.webp" width="720" height="720" loading="eager" decoding="async"/>
 </div>
 <div class="course-body">
 <h3>[송파] 제미나이 완벽 실무 활용법</h3>
@@ -2141,7 +2144,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </a>
 <a class="course-card" href="/course/?c=cmn38bx">
 <div class="course-thumb">
-<img alt="[마포] 제미나이 완벽 실무 활용법" src="/images/course-thumb-gemini.webp" width="720" height="720" loading="lazy" decoding="async"/>
+<img alt="[마포] 제미나이 완벽 실무 활용법" src="/images/course-thumb-gemini.webp" width="720" height="720" loading="eager" decoding="async"/>
 </div>
 <div class="course-body">
 <h3>[마포] 제미나이 완벽 실무 활용법</h3>
@@ -2153,7 +2156,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </a>
 <a class="course-card" href="/course/?c=c1vw46v">
 <div class="course-thumb">
-<img alt="[영등포] 클로드 실전 활용법" src="/images/course-thumb-claude.webp" width="720" height="720" loading="lazy" decoding="async"/>
+<img alt="[영등포] 클로드 실전 활용법" src="/images/course-thumb-claude.webp" width="720" height="720" loading="eager" decoding="async"/>
 </div>
 <div class="course-body">
 <h3>[영등포] 클로드 실전 활용법</h3>
@@ -2165,7 +2168,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </a>
 <a class="course-card" href="/course/?c=csmoom4">
 <div class="course-thumb">
-<img alt="[용산] 제미나이 완벽 실무 활용법" src="/images/course-thumb-ai.webp" width="720" height="720" loading="lazy" decoding="async"/>
+<img alt="[용산] 제미나이 완벽 실무 활용법" src="/images/course-thumb-ai.webp" width="720" height="720" loading="eager" decoding="async"/>
 </div>
 <div class="course-body">
 <h3>[용산] 제미나이 완벽 실무 활용법</h3>
@@ -3305,7 +3308,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   var testimonials = [
     {
       quote: 'AI 이미지, 영상, 숏폼 제작까지 직접 결과물을 만들며 배우는 실무형 교육을 진행합니다. 툴 사용법에 머무르지 않고 수강생이 바로 자신의 콘텐츠를 완성하도록 이끕니다.',
-      name: '아이온 강사',
+      name: '아이온 대표',
       designation: '現 AI리더스협회 AI 대표강사',
       src: '/images/instructor-aion-main.webp'
     },
@@ -3320,7 +3323,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   testimonials = [
     {
       quote: 'AI 이미지, 영상, 숏폼 제작까지 직접 결과물을 만들며 배우는 실무형 교육을 진행합니다.',
-      name: '아이온 강사',
+      name: '아이온 대표',
       designation: '現 AI리더스협회 AI 대표강사',
       details: [
         'AI 이미지·영상·숏폼 제작 실습',
@@ -3916,12 +3919,12 @@ document.addEventListener('DOMContentLoaded', function(){
 <!-- ===== 팝업 끝 ===== -->
 <!-- ===== 리모컨 바 끝 ===== -->
 
-<script src="/assets/supabase-store-common.js?v=20260721-performance-1"></script>
-<script src="/assets/site-content-store.js?v=20260727-faq-2"></script>
+<script src="/assets/supabase-store-common.js?v=20260729-storage-fix-1"></script>
+<script src="/assets/site-content-store.js?v=20260729-cache-refresh-1"></script>
 <script src="/assets/public-media-overrides.js?v=20260721-egress-pilot-3"></script>
-<script src="/assets/courses-store.js?v=20260721-performance-3"></script>
-<script src="/assets/home-featured-renderer.js?v=20260721-performance-2"></script>
-<script src="/assets/site-content-renderer.js?v=20260727-faq-2"></script>
+<script src="/assets/courses-store.js?v=20260729-cardfields-fix-1"></script>
+<script src="/assets/home-featured-renderer.js?v=20260729-instructor-sort-1"></script>
+<script src="/assets/site-content-renderer.js?v=20260729-cache-refresh-1"></script>
 <script>
 CourseHomeFeaturedRenderer.render({ limit: 8 });
 </script>

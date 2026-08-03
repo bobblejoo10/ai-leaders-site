@@ -32,9 +32,31 @@
   }
 
   function instructorMarkup(course) {
-    var name = String(course.instructor || '').trim();
-    if (!name) return '';
-    var label = /\uAC15\uC0AC$/.test(name) ? name : name + ' \uAC15\uC0AC';
+    var names = [];
+    if (Array.isArray(course.sessions) && course.sessions.length) {
+      var seen = {};
+      course.sessions.forEach(function (session) {
+        var sessionName = String(session && session.instructor || '').trim();
+        if (sessionName && !seen[sessionName]) {
+          seen[sessionName] = true;
+          names.push(sessionName);
+        }
+      });
+    }
+    if (!names.length) {
+      var single = String(course.instructor || '').trim();
+      if (single) names.push(single);
+    }
+    if (!names.length) return '';
+    // "\uC544\uC774\uC628"\uC774 \uD3EC\uD568\uB3FC \uC788\uC73C\uBA74 \uD56D\uC0C1 \uB9E8 \uC55E\uC5D0 \uB098\uC624\uAC8C \uD55C\uB2E4.
+    names.sort(function (a, b) {
+      if (a === '\uC544\uC774\uC628' && b !== '\uC544\uC774\uC628') return -1;
+      if (b === '\uC544\uC774\uC628' && a !== '\uC544\uC774\uC628') return 1;
+      return 0;
+    });
+    var label = names.map(function (name) {
+      return /\uAC15\uC0AC$/.test(name) ? name : name + ' \uAC15\uC0AC';
+    }).join(', ');
     return '<p class="cc-instructor">' + store().escapeHtml(label) + '</p>';
   }
 
@@ -55,7 +77,7 @@
     var thumb = typeof s.courseThumbnail === 'function' ? s.courseThumbnail(course) : (course.thumbImg || '/images/logo-ink.png');
     var priority = index === 0
       ? ' loading="eager" fetchpriority="high"'
-      : ' loading="lazy"';
+      : ' loading="eager"';
     var fallbackCode = global.AiLeadersUtils && global.AiLeadersUtils.stablePublicCode
       ? global.AiLeadersUtils.stablePublicCode(course.id)
       : course.id;

@@ -87,7 +87,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 <link rel="icon" href="../favicon.ico" type="image/x-icon"/>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" media="print" onload="this.media='all'"/><noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"/></noscript>
 <link rel="stylesheet" href="../shared.css"/>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17060350229"></script>
@@ -296,6 +296,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
+      touch-action: pan-x;
+      overscroll-behavior-x: contain;
     }
     .filters::-webkit-scrollbar { display: none; }
     .filter-btn { flex: 0 0 auto; white-space: nowrap; }
@@ -458,7 +460,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
       </div>
 
-      <div class="course-grid reveal" id="courseGrid">
+      <div class="course-grid" id="courseGrid">
 
         <article class="card" data-cat="chatgpt" data-event-date="2026-07-03">
           <a href="/course/?c=c1tbhva" class="card-link">
@@ -695,10 +697,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </footer>
 
-<script src="/assets/supabase-store-common.js?v=20260721-performance-1"></script>
-<script src="/assets/courses-store.js?v=20260721-performance-3"></script>
-<script src="/assets/course-page-renderer.js"></script>
-<script src="/assets/applications-store.js?v=20260721-form-submit-1"></script>
+<script src="/assets/supabase-store-common.js?v=20260729-storage-fix-1"></script>
+<script src="/assets/courses-store.js?v=20260729-cardfields-fix-1"></script>
+<script src="/assets/course-page-renderer.js?v=20260729-instructor-sort-1"></script>
+<script src="/assets/applications-store.js?v=20260729-event-date-1"></script>
 <script>
 CoursePageRenderer.render({ type: 'free', mobilePageSize: 6 });
 </script>
@@ -734,10 +736,17 @@ function closeRegionDd() {
 }
 
 function handleMainRegionSearch(value) {
+  window.__lastRegionSearch = value;
   if (window.CoursePageRenderer && window.CoursePageRenderer.searchLocation) {
     window.CoursePageRenderer.searchLocation(value);
   }
 }
+// 뒤로가기(bfcache) 복원 시 검색창이 비워지지만 필터는 남는 문제 보정: 검색창을 필터 상태와 일치
+window.addEventListener('pageshow', function () {
+  var input = document.getElementById('mainRegionSearchInput');
+  var last = window.__lastRegionSearch || '';
+  if (input && last && input.value !== last) { input.value = last; }
+});
 
 function filterRegion(region, btn) {
   if (window.CoursePageRenderer && window.CoursePageRenderer.filterRegion) {
