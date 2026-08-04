@@ -41,7 +41,8 @@
     '전남': '전남',
     '경북': '경북',
     '경남': '경남',
-    '제주': '제주'
+    '제주': '제주',
+    '서귀포': '제주'
   };
 
   var PAYMENT_ACCOUNT_PRESETS = {
@@ -150,7 +151,55 @@
     normalized.applicationNotice.publicCode = normalized.publicCode;
     normalized.applicationNotice.featuredOrder = normalized.featuredOrder;
     normalized.applicationNotice.mealBreakMinutes = normalized.mealBreakMinutes;
+    // 통합 일정용 회차 배열. 비어있으면 강연 자체의 지역/날짜/시간/강사/상태 필드를 그대로 쓰는
+    // 단독 강연이다. 값이 있으면 대표 회차(마감 안 지난 것 중 가장 임박한 것) 기준으로
+    // 목록/카드에 보이는 요약 정보를 자동으로 채운다.
+    var rawSessions = Array.isArray(normalized.sessions) ? normalized.sessions : [];
+    normalized.sessions = rawSessions.map(function (session, index) {
+      return normalizeSession(session, index);
+    });
+    if (normalized.sessions.length) {
+      var repSession = pickRepresentativeSession(normalized.sessions);
+      var anyOpenSession = normalized.sessions.some(function (session) { return isOpenForApply(session); });
+      var allHiddenSessions = normalized.sessions.every(function (session) { return session.status === 'hidden'; });
+      normalized.region = repSession.region || normalized.region;
+      normalized.location = repSession.location || normalized.location;
+      normalized.address = repSession.address || normalized.address;
+      normalized.eventDate = repSession.eventDate || normalized.eventDate;
+      normalized.eventTime = repSession.eventTime || normalized.eventTime;
+      normalized.instructor = repSession.instructor || normalized.instructor;
+      normalized.status = anyOpenSession ? 'open' : (allHiddenSessions ? 'hidden' : 'closed');
+      // 신청자 수는 회차별로 따로 집계하지 않는다 (DB 트리거가 courses.applicant_count 컬럼
+      // 하나만 실시간으로 관리하므로, sessions 안의 값을 합산하면 항상 0으로 나온다).
+    }
     return normalized;
+  }
+
+  function normalizeSession(session, index) {
+    var item = Object.assign({}, session || {});
+    item.id = String(item.id || '').trim() || ('s' + (index != null ? index + 1 : Date.now()));
+    item.region = inferRegion(item);
+    item.location = String(item.location || '').trim();
+    item.address = String(item.address || '').trim();
+    item.eventDate = item.eventDate || '';
+    item.eventTime = String(item.eventTime || '').trim();
+    item.instructor = String(item.instructor || '').trim();
+    item.status = item.status || 'open';
+    item.applicantCount = Math.max(0, toNumber(item.applicantCount, 0));
+    return item;
+  }
+
+  function pickRepresentativeSession(sessions, now) {
+    var openOnes = sessions.filter(function (session) { return isOpenForApply(session, now); });
+    var pool = openOnes.length ? openOnes : sessions;
+    return pool.slice().sort(function (a, b) {
+      var aEvent = applicationDeadline(a);
+      var bEvent = applicationDeadline(b);
+      if (aEvent && bEvent) return aEvent - bEvent;
+      if (aEvent) return -1;
+      if (bEvent) return 1;
+      return 0;
+    })[0];
   }
 
   function fromRow(row) {
@@ -179,7 +228,8 @@
       paymentHolder: row.payment_holder,
       badges: row.badges,
       summary: row.summary,
-      applicationNotice: row.application_notice
+      applicationNotice: row.application_notice,
+      sessions: row.sessions
     });
   }
 
@@ -237,7 +287,8 @@
       payment_holder: normalized.paymentHolder || null,
       badges: normalized.badges,
       summary: normalized.summary || null,
-      application_notice: applicationNotice
+      application_notice: applicationNotice,
+      sessions: normalized.sessions || []
     };
   }
 
@@ -307,12 +358,14 @@
   }
 
   function compareFeatured(a, b) {
-    var applicants = toNumber(b.applicantCount, 0) - toNumber(a.applicantCount, 0);
-    if (applicants !== 0) return applicants;
-
     var aEvent = applicationDeadline(a);
     var bEvent = applicationDeadline(b);
     if (aEvent && bEvent && aEvent.getTime() !== bEvent.getTime()) return aEvent - bEvent;
+    if (aEvent && !bEvent) return -1;
+    if (!aEvent && bEvent) return 1;
+
+    var applicants = toNumber(b.applicantCount, 0) - toNumber(a.applicantCount, 0);
+    if (applicants !== 0) return applicants;
 
     return String(a.title || '').localeCompare(String(b.title || ''), 'ko');
   }
@@ -367,7 +420,8 @@
     var cardFields = [
       'id', 'type', 'status', 'title', 'category', 'region', 'location', 'address',
       'event_date', 'event_time', 'apply_start_at', 'apply_end_at', 'instructor',
-      'applicant_count', 'price', 'price_orig', 'badges', 'summary', 'application_notice'
+      'applicant_count', 'price', 'price_orig', 'badges', 'summary', 'application_notice',
+      'sessions'
     ].join(',');
     var thumbnailPromise = api.selectRows('courses', {
       select: 'id,thumb_img',
@@ -466,6 +520,10 @@
     return (type === 'paid' ? 'paid' : 'free') + '-' + Date.now().toString(36);
   }
 
+  function createSessionId() {
+    return 's-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+  }
+
   function createPublicCode(seed, existingCodes) {
     var used = {};
     (existingCodes || []).forEach(function (code) {
@@ -553,7 +611,9 @@
     remainingSeats: remainingSeats,
     formatMoney: formatMoney,
     formatDateKo: formatDateKo,
-    escapeHtml: escapeHtml
+    escapeHtml: escapeHtml,
+    normalizeSession: normalizeSession,
+    createSessionId: createSessionId
   };
 
   ready().catch(function () {});

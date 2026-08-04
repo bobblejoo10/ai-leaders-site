@@ -206,9 +206,8 @@
     display: flex;
   }
 
-  /* 모바일 펼침 목록에는 인스타·페이스북·유튜브만 노출 (카카오·네이버 카페는 숨김) */
-  .quick-links.is-expanded .qitem:nth-child(3),
-  .quick-links.is-expanded .qitem:nth-child(5) {
+  /* 모바일 펼침 목록에는 인스타·페이스북·유튜브만 노출 (네이버 카페는 숨김) */
+  .quick-links.is-expanded .qitem:nth-child(4) {
     display: none;
   }
 
@@ -221,9 +220,8 @@
 
   .quick-links .qitem:nth-child(1) { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%); }
   .quick-links .qitem:nth-child(2) { background: #1877f2; }
-  .quick-links .qitem:nth-child(3) { background: #fee500; color: #191919; }
-  .quick-links .qitem:nth-child(4) { background: #ff0000; }
-  .quick-links .qitem:nth-child(5) { background: #03c75a; }
+  .quick-links .qitem:nth-child(3) { background: #ff0000; }
+  .quick-links .qitem:nth-child(4) { background: #03c75a; }
 
   .quick-links .qitem svg,
   .quick-links .q-naver-mark {

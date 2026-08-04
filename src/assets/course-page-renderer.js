@@ -12,9 +12,10 @@
   function titleWithLocation(title, location) {
     var text = String(title || '').trim();
     var place = String(location || '').trim();
+    // 관리자가 강연명에 이미 대괄호로 지역 표시를 직접 입력했으면 그대로 존중하고 덮어쓰지 않는다.
+    if (/^\[[^\]]+\]/.test(text)) return text;
     if (!place) return text;
     if (!text) return '[' + place + ']';
-    if (/^\[[^\]]+\]/.test(text)) return text.replace(/^\[[^\]]+\]/, '[' + place + ']');
     return '[' + place + '] ' + text;
   }
 
@@ -180,9 +181,31 @@
   }
 
   function instructorMarkup(course) {
-    var name = String(course.instructor || '').trim();
-    if (!name) return '';
-    var label = /강사$/.test(name) ? name : name + ' 강사';
+    var names = [];
+    if (Array.isArray(course.sessions) && course.sessions.length) {
+      var seen = {};
+      course.sessions.forEach(function (session) {
+        var sessionName = String(session && session.instructor || '').trim();
+        if (sessionName && !seen[sessionName]) {
+          seen[sessionName] = true;
+          names.push(sessionName);
+        }
+      });
+    }
+    if (!names.length) {
+      var single = String(course.instructor || '').trim();
+      if (single) names.push(single);
+    }
+    if (!names.length) return '';
+    // "아이온"이 포함돼 있으면 항상 맨 앞에 나오게 한다.
+    names.sort(function (a, b) {
+      if (a === '아이온' && b !== '아이온') return -1;
+      if (b === '아이온' && a !== '아이온') return 1;
+      return 0;
+    });
+    var label = names.map(function (name) {
+      return /강사$/.test(name) ? name : name + ' 강사';
+    }).join(', ');
     return '<p class="cc-instructor">' + store().escapeHtml(label) + '</p>';
   }
 
@@ -215,7 +238,7 @@
     var muted = /마감|완료|비공개/.test(status) ? ' style="color:#555;"' : '';
     var title = displayTitle(course);
     var thumb = typeof s.courseThumbnail === 'function' ? s.courseThumbnail(course) : (course.thumbImg || '/images/logo-ink.png');
-    var loading = index === 0 ? 'eager' : 'lazy';
+    var loading = index < 6 ? 'eager' : 'lazy';
     var fallbackCode = global.AiLeadersUtils && global.AiLeadersUtils.stablePublicCode
       ? global.AiLeadersUtils.stablePublicCode(course.id)
       : course.id;
@@ -254,6 +277,24 @@
   var resizeBound = false;
   var resizeTimer = null;
   var storeSubscribed = false;
+  var lastGridId = '';
+  var lastGridHtml = '';
+  var lastPagerHtml = '';
+  var lastViewportWidth = null;
+
+  // grid.innerHTML 을 다시 쓰면 안에 있던 <img> 가 전부 파괴되고 새로 만들어진다.
+  // 브라우저가 이미지를 다시 디코딩하는 한두 프레임 동안 .course-thumb 의 배경색
+  // (#e8f1ff) 이 그대로 드러나서 썸네일이 깜빡이는 것처럼 보인다.
+  // 그래서 만들어진 HTML 이 직전과 완전히 같으면 DOM 을 아예 건드리지 않는다.
+  // (D-day·마감 임박 같은 시간 의존 문구까지 문자열에 포함되므로, 표시가 바뀌어야
+  //  하는 상황에서는 문자열이 달라져 정상적으로 다시 그려진다.)
+  function applyGridHtml(grid, html) {
+    if (lastGridId === grid.id && lastGridHtml === html) return false;
+    grid.innerHTML = html;
+    lastGridId = grid.id;
+    lastGridHtml = html;
+    return true;
+  }
 
   function pageSize() {
     var isMobile = global.matchMedia && global.matchMedia('(max-width:540px)').matches;
@@ -297,13 +338,19 @@
     if (totalPages <= 1) {
       pager.innerHTML = '';
       pager.style.display = 'none';
+      lastPagerHtml = '';
       return;
     }
-    pager.style.display = '';
-    pager.innerHTML = ''
+    var pagerHtml = ''
       + '<button class="course-page-btn" type="button" data-course-page-prev aria-label="이전 페이지">&lsaquo;</button>'
       + '<span class="course-page-count">' + (pagedState.page + 1) + ' / ' + totalPages + '</span>'
       + '<button class="course-page-btn" type="button" data-course-page-next aria-label="다음 페이지">&rsaquo;</button>';
+    pager.style.display = '';
+    // 내용이 같으면 버튼을 다시 만들지 않는다. 다시 만들면 사용자가 누르는 중이던
+    // 버튼과 리스너가 교체되어 탭이 무시될 수 있다.
+    if (lastPagerHtml === pagerHtml) return;
+    lastPagerHtml = pagerHtml;
+    pager.innerHTML = pagerHtml;
     var prev = pager.querySelector('[data-course-page-prev]');
     var next = pager.querySelector('[data-course-page-next]');
     prev.disabled = pagedState.page <= 0;
@@ -376,12 +423,12 @@
     var grid = document.getElementById(pagedState.gridId);
     if (!grid) return;
     if (store().hasError && store().hasError()) {
-      grid.innerHTML = unavailableMarkup();
+      applyGridHtml(grid, unavailableMarkup());
       renderPager(grid, 0);
       return;
     }
     if (store().hasLoaded && !store().hasLoaded()) {
-      grid.innerHTML = loadingMarkup();
+      applyGridHtml(grid, loadingMarkup());
       renderPager(grid, 0);
       return;
     }
@@ -391,8 +438,8 @@
     pagedState.page = Math.min(Math.max(pagedState.page, 0), totalPages - 1);
     var start = pagedState.page * size;
     var pageItems = list.slice(start, start + size);
-    grid.innerHTML = '<div id="emptyMsg" style="display:' + (list.length ? 'none' : 'block') + ';grid-column:1/-1;text-align:center;padding:80px 0;color:#8a95a3;font-size:18px;font-weight:600;">강연 준비 중입니다</div>'
-      + pageItems.map(cardMarkup).join('');
+    applyGridHtml(grid, '<div id="emptyMsg" style="display:' + (list.length ? 'none' : 'block') + ';grid-column:1/-1;text-align:center;padding:80px 0;color:#8a95a3;font-size:18px;font-weight:600;">강연 준비 중입니다</div>'
+      + pageItems.map(cardMarkup).join(''));
     renderPager(grid, list.length ? totalPages : 0);
     updateFilterButtons();
     updateRegionFilter();
@@ -402,7 +449,14 @@
   function bindResize() {
     if (resizeBound) return;
     resizeBound = true;
+    lastViewportWidth = global.innerWidth;
     global.addEventListener('resize', function () {
+      // 모바일 브라우저는 스크롤 중 주소창이 접히거나 펴질 때마다 resize 를 발생시킨다.
+      // pageSize() 는 (max-width:540px) 가로 조건만 보므로 세로 높이 변화로는 결과가
+      // 달라지지 않는다. 그런데도 다시 그리면 썸네일이 깜빡이므로 가로폭이 실제로
+      // 바뀐 경우(기기 회전, 창 크기 조절)에만 재렌더한다.
+      if (global.innerWidth === lastViewportWidth) return;
+      lastViewportWidth = global.innerWidth;
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(function () {
         renderCurrentPage();
@@ -428,6 +482,10 @@
       region: 'all',
       page: 0
     };
+    // 새로 초기화할 때는 직전 렌더 기록을 비워 첫 렌더가 반드시 수행되도록 한다.
+    lastGridId = '';
+    lastGridHtml = '';
+    lastPagerHtml = '';
     bindResize();
     renderCurrentPage();
     if (typeof store().ready === 'function') {
