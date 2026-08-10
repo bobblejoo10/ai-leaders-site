@@ -59,6 +59,13 @@
   .panel-sub{font-size:12px;color:var(--admin-muted);margin-top:2px}
   .panel-body{padding:20px}
   .form-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:22px}
+  .quick-fill{border:1px solid #c9e1ff;border-radius:8px;background:#f5f9ff;padding:14px 16px}
+  .quick-fill > label{color:#174276}
+  .quick-fill-control{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .quick-fill-control input{flex:1;min-width:240px;margin-bottom:0}
+  .quick-fill-status{min-height:0;margin:8px 0 0;font-size:12px;font-weight:800;color:var(--admin-good);word-break:keep-all}
+  .quick-fill-status.is-error{color:var(--admin-danger)}
+  .quick-fill-status:empty{display:none}
   #mealBreakMinutes{max-width:110px}
   #price,#priceOrig{max-width:170px}
   #mealBreakLocationRow .triple-row,#priceRow .triple-row{gap:8px 10px}
@@ -96,8 +103,9 @@
   .session-pair-row [data-session-field="location"]{flex:0 0 130px;width:130px;max-width:130px}
   .session-pair-row [data-session-field="address"]{flex:0 0 430px;width:430px;max-width:430px}
   .session-pair-row [data-session-field="eventDate"]{min-width:190px}
-  .session-pair-row .time-control{max-width:210px}
-  .session-pair-row .time-control input{max-width:80px}
+  .session-pair-row .time-field{flex:0 0 250px;width:250px;max-width:250px}
+  .session-pair-row .time-control{max-width:250px}
+  .session-pair-row .time-control input,.session-pair-row .time-control select{max-width:100px}
   .session-pair-row [data-session-field="instructor"]{flex:0 0 130px;width:130px;max-width:130px}
   .session-pair-row [data-session-field="status"]{min-width:190px}
   .session-row-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
@@ -130,15 +138,23 @@
   .payment-account-grid label{display:block;font-size:12px;color:var(--admin-muted);font-weight:900;margin-bottom:6px}
   .payment-account-panel input[readonly]{background:#f2f4f7;color:#475467}
   .time-control{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center}
-  .time-control input{max-width:115px}
+  .time-control input,.time-control select{max-width:115px}
   .time-control span{color:var(--admin-muted);font-size:13px;font-weight:900}
+  .time-field{display:grid;gap:8px;min-width:0}
+  .time-slot-toggle{display:grid;grid-template-columns:repeat(3,minmax(60px,1fr));gap:6px;max-width:252px}
+  .time-slot-btn{min-height:34px;padding:0 10px;border:1px solid var(--admin-line);border-radius:8px;background:#fff;color:#475467;font-size:13px;font-weight:900;cursor:pointer;transition:border-color .15s ease,background .15s ease,color .15s ease,box-shadow .15s ease}
+  .time-slot-btn:hover{border-color:#98a2b3}
+  .time-slot-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(1,114,254,.14)}
+  .time-slot-btn.is-active{border-color:var(--admin-brand);background:#eef5ff;color:var(--admin-brand)}
+  .time-slot-btn:disabled{cursor:not-allowed;opacity:.45}
   .triple-row{display:flex;flex-wrap:wrap;gap:20px 28px;align-items:flex-start}
   .triple-row > .field{flex:0 0 300px;min-width:220px}
   .triple-row > .field:has(.course-type-toggle){flex:0 0 340px}
+  .triple-row > .field:has(.time-field){flex:0 0 380px}
   .triple-row > .field:has(.category-control.is-custom){flex-basis:540px}
   .field-inline{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap}
   .field-inline > label,.field-inline > .field-label{flex:0 0 auto;white-space:nowrap;margin-bottom:0;margin-top:10px}
-  .field-inline > input,.field-inline > select,.field-inline > textarea,.field-inline > .category-control,.field-inline > .time-control,.field-inline > .public-url-control{flex:1;min-width:120px;margin-bottom:0}
+  .field-inline > input,.field-inline > select,.field-inline > textarea,.field-inline > .category-control,.field-inline > .time-control,.field-inline > .time-field,.field-inline > .public-url-control{flex:1;min-width:120px;margin-bottom:0}
   .field-inline > .course-type-toggle{flex:0 0 auto;margin-bottom:0}
   .field-inline > *:nth-child(n+3){flex-basis:100%}
   .image-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
@@ -289,6 +305,16 @@
           <form id="courseForm">
             <input id="courseId" name="id" type="hidden"/>
             <div class="form-grid">
+              <div class="field full quick-fill">
+                <label for="quickFillInput">빠른 입력 <span class="muted">강연명·지역·날짜·시간·강사·장소 한 줄 붙여넣기</span></label>
+                <div class="quick-fill-control">
+                  <input id="quickFillInput" type="text" autocomplete="off" placeholder="예) AI리더스 제미나이 신청 - 군포 9월 7일 10:00 (문건우) (한세대학교 본관 7층 세미나실)"/>
+                  <button class="btn-admin primary" type="button" id="quickFillApplyBtn">적용</button>
+                  <button class="btn-admin" type="button" id="quickFillClearBtn">지우기</button>
+                </div>
+                <p class="quick-fill-status" id="quickFillStatus"></p>
+                <p class="field-help">"강연명 - 지역 M월 D일 HH:MM (강사) (상세 장소)" 형식으로 붙여넣고 적용을 누르면 강연명·해시태그 지역명·강연일·강연 시간·강사·상세 장소가 한번에 채워집니다. 괄호는 앞이 강사, 뒤가 상세 장소이며 없으면 건너뜁니다. 연도를 적지 않으면 다가오는 날짜로 잡습니다. 입력 칸에서 Enter를 눌러도 적용됩니다.</p>
+              </div>
               <div class="field full image-upload-field">
                 <label>썸네일ㅣ상세페이지 이미지 첨부</label>
                 <div class="image-grid">
@@ -396,13 +422,20 @@
                   </div>
                   <div class="field field-inline" data-single-session-field="1">
                     <label for="eventStartTime">강연 시간</label>
-                    <div class="time-control">
-                      <input type="text" id="eventStartTime" name="eventStartTime" aria-label="강연 시작 시간" placeholder="10:00" inputmode="numeric" pattern="[0-2][0-9]:[0-5][0-9]" maxlength="5"/>
-                      <span>~</span>
-                      <input type="text" id="eventEndTime" name="eventEndTime" aria-label="강연 종료 시간" placeholder="13:00" inputmode="numeric" pattern="[0-2][0-9]:[0-5][0-9]" maxlength="5"/>
+                    <div class="time-field">
+                      <div class="time-slot-toggle" id="eventTimeSlot" role="group" aria-label="강연 시간대">
+                        <button class="time-slot-btn" type="button" aria-pressed="false" data-time-slot="morning">오전</button>
+                        <button class="time-slot-btn" type="button" aria-pressed="false" data-time-slot="afternoon">오후</button>
+                        <button class="time-slot-btn" type="button" aria-pressed="false" data-time-slot="evening">야간</button>
+                      </div>
+                      <div class="time-control">
+                        <select id="eventStartTime" name="eventStartTime" aria-label="강연 시작 시간"></select>
+                        <span>~</span>
+                        <select id="eventEndTime" name="eventEndTime" aria-label="강연 종료 시간"></select>
+                      </div>
                     </div>
                     <input id="eventTime" name="eventTime" type="hidden"/>
-                    <p class="field-help">24시간제로 "시:분" 형식으로 입력하세요 (예: 14:30). 분 단위 제한 없음.</p>
+                    <p class="field-help">시간대를 고르면 기본 시작 시간(오전 10:00 / 오후 15:00 / 야간 19:20)과 3시간 기준 종료 시간이 자동으로 채워집니다. 시작 시간은 오전 09:00~12:00, 오후 12:00~17:00, 야간 17:00~22:00 범위에서 10분 단위로 고를 수 있고, 종료 시간은 22:00을 넘지 않습니다.</p>
                   </div>
                 </div>
               </div>
@@ -457,6 +490,7 @@
                   <div class="field field-inline">
                     <label for="noticeItems">안내 내용</label>
                     <textarea id="noticeItems" name="noticeItems" placeholder="한 줄에 하나씩 입력하면 상세페이지에서 목록으로 표시됩니다."></textarea>
+                    <p class="field-help">"입장 마감 (10시 00분)" 형태로 적힌 시각은 위의 강연 시작 시간에 맞춰 자동으로 바뀝니다.</p>
                   </div>
                 </div>
               </div>
@@ -518,8 +552,8 @@
               </div>
               <div class="field full field-inline">
                 <label for="badges">카드 배지</label>
-                <input id="badges" name="badges" placeholder="예) 8월 7일, 8월 서초"/>
-                <p class="field-help">쉼표로 구분해 입력하면 대표·무료·유료 강연 카드 하단 배지로 표시됩니다.</p>
+                <input id="badges" name="badges" placeholder="예) 9월 7일, 9월 군포"/>
+                <p class="field-help">쉼표로 구분해 입력하면 대표·무료·유료 강연 카드 하단 배지로 표시됩니다. 강연일과 해시태그 지역명을 넣으면 "9월 7일, 9월 군포" 배지가 자동으로 채워지고, 날짜나 지역을 고치면 함께 갱신됩니다. 직접 추가한 다른 배지는 그대로 유지됩니다.</p>
               </div>
               <div class="field full field-inline">
                 <label for="publicUrl">광고용 상세페이지 주소</label>
@@ -761,8 +795,52 @@
     return String(value || '').split(',').map(function(item){ return item.trim(); }).filter(Boolean);
   }
 
+  // 강연일·지역에서 만들어지는 배지 ("9월 7일", "9월 군포").
+  function autoBadgeValues(eventDate, location){
+    var parts = String(eventDate || '').split('-');
+    var month = Number(parts[1]);
+    var day = Number(parts[2]);
+    if (!month || !day) return [];
+    var badges = [month + '월 ' + day + '일'];
+    var region = String(location || '').trim();
+    if (region) badges.push(month + '월 ' + region);
+    return badges;
+  }
+
+  // "9월 …"로 시작하는 배지는 자동 관리 대상으로 보고 다시 계산합니다.
+  function isAutoBadge(badge){
+    return /^\d{1,2}\s*월(\s|$)/.test(String(badge || '').trim());
+  }
+
+  function syncAutoBadges(){
+    var manual = splitBadges($('badges').value).filter(function(badge){ return !isAutoBadge(badge); });
+    $('badges').value = autoBadgeValues($('eventDate').value, $('location').value).concat(manual).join(', ');
+    return $('badges').value;
+  }
+
   function splitLines(value){
     return String(value || '').split('\n').map(function(item){ return item.trim(); }).filter(Boolean);
+  }
+
+  // 안내 문구의 "입장 마감 (10시 00분)"은 강연 시작 시간을 따라갑니다.
+  var ENTRY_DEADLINE_PATTERN = /(입장\s*마감\s*[(（]\s*)\d{1,2}\s*시\s*\d{1,2}\s*분(\s*[)）])/g;
+
+  function entryDeadlineText(){
+    var field = $('eventStartTime');
+    var value = normalizeTime(field ? field.value : '') || '10:00';
+    var parts = value.split(':');
+    return parts[0] + '시 ' + parts[1] + '분';
+  }
+
+  function applyEntryDeadline(value){
+    return String(value || '').replace(ENTRY_DEADLINE_PATTERN, '$1' + entryDeadlineText() + '$2');
+  }
+
+  function syncNoticeTime(){
+    ['noticeItems', 'noticeNotes', 'noticeFooter'].forEach(function(id){
+      var field = $(id);
+      if (field) field.value = applyEntryDeadline(field.value);
+    });
   }
 
   function defaultApplicationNotice(type){
@@ -787,7 +865,7 @@
       title: '신청 시 유의사항',
       items: [
         '30~65세 성인 남녀 입장 가능 (임산부/미성년자 입장 불가)',
-        '입장 마감 (10시 00분) 시간 이후로 입장이 불가 합니다.',
+        '입장 마감 (' + entryDeadlineText() + ') 시간 이후로 입장이 불가 합니다.',
         '10분 정도 일찍 입장해주세요 (당첨문자 & 신분증 지참)',
         '본 행사는 후원사(보람상조) 홍보시간이 포함 되어있는 무료강연 입니다.',
         '본 강연은 AI리더스협회에서 주최하는 행사로 대관장소와는 무관하며, 사정에 따라 일정 및 장소가 변경될 수 있습니다.'
@@ -818,6 +896,7 @@
     $('noticeNoteTitle').value = notice.noteTitle || '';
     $('noticeNotes').value = (notice.notes || []).join('\n');
     $('noticeFooter').value = notice.footer || '';
+    syncNoticeTime();
   }
 
   function collectApplicationNotice(){
@@ -1239,6 +1318,98 @@
     return Number(parts[0]) * 60 + Number(parts[1]);
   }
 
+  var TIME_STEP_MINUTES = 10;
+  var DEFAULT_DURATION_MINUTES = 180;
+  var LATEST_END_TIME = '22:00';
+  var TIME_SLOTS = [
+    { key: 'morning', label: '오전', defaultStart: '10:00', min: '09:00', max: '12:00' },
+    { key: 'afternoon', label: '오후', defaultStart: '15:00', min: '12:00', max: '17:00' },
+    { key: 'evening', label: '야간', defaultStart: '19:20', min: '17:00', max: '22:00' }
+  ];
+
+  function minutesToTime(minutes){
+    var total = Math.max(0, Math.min(24 * 60 - 1, Math.round(minutes)));
+    return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
+  }
+
+  function findTimeSlot(key){
+    return TIME_SLOTS.filter(function(slot){ return slot.key === key; })[0] || null;
+  }
+
+  // 시간대는 시작 시간을 기준으로 판정합니다 (12:00은 오후, 17:00은 야간).
+  function slotForStartTime(value){
+    var minutes = timeToMinutes(normalizeTime(value) || TIME_SLOTS[0].defaultStart);
+    if (minutes < timeToMinutes('12:00')) return TIME_SLOTS[0];
+    if (minutes < timeToMinutes('17:00')) return TIME_SLOTS[1];
+    return TIME_SLOTS[2];
+  }
+
+  function defaultEndTime(startTime){
+    var startMinutes = timeToMinutes(normalizeTime(startTime) || TIME_SLOTS[0].defaultStart);
+    var capped = Math.min(startMinutes + DEFAULT_DURATION_MINUTES, timeToMinutes(LATEST_END_TIME));
+    return minutesToTime(Math.max(capped, startMinutes + TIME_STEP_MINUTES));
+  }
+
+  function timeOptionValues(fromTime, toTime, extraValue){
+    var values = [];
+    for (var minutes = timeToMinutes(fromTime); minutes <= timeToMinutes(toTime); minutes += TIME_STEP_MINUTES) {
+      values.push(minutesToTime(minutes));
+    }
+    var extra = normalizeTime(extraValue);
+    if (extra && values.indexOf(extra) === -1) {
+      values.push(extra);
+      values.sort(function(a, b){ return timeToMinutes(a) - timeToMinutes(b); });
+    }
+    return values;
+  }
+
+  function timeOptionsHtml(values, selected){
+    return values.map(function(value){
+      return '<option value="' + value + '"' + (value === selected ? ' selected' : '') + '>' + value + '</option>';
+    }).join('');
+  }
+
+  function startTimeOptionsHtml(startTime){
+    var slot = slotForStartTime(startTime);
+    var value = normalizeTime(startTime) || slot.defaultStart;
+    return timeOptionsHtml(timeOptionValues(slot.min, slot.max, value), value);
+  }
+
+  function endTimeOptionsHtml(startTime, endTime){
+    var startMinutes = timeToMinutes(normalizeTime(startTime) || TIME_SLOTS[0].defaultStart);
+    var value = normalizeTime(endTime) || defaultEndTime(startTime);
+    var first = minutesToTime(startMinutes + TIME_STEP_MINUTES);
+    var last = minutesToTime(Math.max(timeToMinutes(LATEST_END_TIME), startMinutes + TIME_STEP_MINUTES));
+    return timeOptionsHtml(timeOptionValues(first, last, value), value);
+  }
+
+  function timeSlotToggleHtml(activeKey, attributeName){
+    return '<div class="time-slot-toggle" role="group" aria-label="강연 시간대">'
+      + TIME_SLOTS.map(function(slot){
+          var active = slot.key === activeKey;
+          return '<button class="time-slot-btn' + (active ? ' is-active' : '') + '" type="button"'
+            + ' aria-pressed="' + (active ? 'true' : 'false') + '"'
+            + ' ' + attributeName + '="' + slot.key + '">' + slot.label + '</button>';
+        }).join('')
+      + '</div>';
+  }
+
+  function markTimeSlotButtons(container, activeKey){
+    if (!container) return;
+    container.querySelectorAll('[data-time-slot]').forEach(function(button){
+      var active = button.getAttribute('data-time-slot') === activeKey;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function normalizeTimeRange(startValue, endValue){
+    var start = normalizeTime(startValue) || TIME_SLOTS[0].defaultStart;
+    var end = normalizeTime(endValue);
+    if (!end || timeToMinutes(end) <= timeToMinutes(start)) end = defaultEndTime(start);
+    return { start: start, end: end };
+  }
+
   function parseEventTime(value){
     var matches = String(value || '').match(/(\d{1,2}:\d{2})/g) || [];
     return {
@@ -1252,11 +1423,208 @@
     return $('eventTime').value;
   }
 
+  function renderEventTimeControl(startValue, endValue){
+    var range = normalizeTimeRange(startValue, endValue);
+    $('eventStartTime').innerHTML = startTimeOptionsHtml(range.start);
+    $('eventStartTime').value = range.start;
+    $('eventEndTime').innerHTML = endTimeOptionsHtml(range.start, range.end);
+    $('eventEndTime').value = range.end;
+    markTimeSlotButtons($('eventTimeSlot'), slotForStartTime(range.start).key);
+    syncEventTime();
+    syncNoticeTime();
+  }
+
   function fillEventTime(value){
     var range = parseEventTime(value);
-    $('eventStartTime').value = range.start;
-    $('eventEndTime').value = range.end;
-    syncEventTime();
+    renderEventTimeControl(range.start, range.end);
+  }
+
+  // ---- 빠른 입력 ("강연명 - 지역 M월 D일 HH:MM" 한 줄 파싱) ----
+
+  function quickTimeFromParts(meridiem, hourValue, minuteValue){
+    var hour = Number(hourValue);
+    var minute = Number(minuteValue || 0);
+    if (!Number.isFinite(hour) || hour < 0 || hour > 23) return '';
+    if (!Number.isFinite(minute) || minute < 0 || minute > 59) return '';
+    if (meridiem === '오후' && hour < 12) hour += 12;
+    if (meridiem === '오전' && hour === 12) hour = 0;
+    if (hour > 23) return '';
+    return String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+  }
+
+  function extractQuickTime(value){
+    var colon = value.match(/(오전|오후)?\s*(\d{1,2}):(\d{2})/);
+    if (colon) {
+      var colonTime = quickTimeFromParts(colon[1], colon[2], colon[3]);
+      if (colonTime) return { time: colonTime, matched: colon[0], index: colon.index };
+    }
+    var korean = value.match(/(오전|오후)?\s*(\d{1,2})\s*시(?!간)(?:\s*(\d{1,2})\s*분)?/);
+    if (korean) {
+      var koreanTime = quickTimeFromParts(korean[1], korean[2], korean[3]);
+      if (koreanTime) return { time: koreanTime, matched: korean[0], index: korean.index };
+    }
+    return null;
+  }
+
+  function isRealDate(year, month, day){
+    var date = new Date(year, month - 1, day);
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+  }
+
+  // 연도를 적지 않으면 오늘 이후로 다가오는 해를 씁니다.
+  function resolveUpcomingYear(month, day){
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var year = now.getFullYear();
+    if (isRealDate(year, month, day) && new Date(year, month - 1, day).getTime() < today.getTime()) year += 1;
+    return year;
+  }
+
+  function extractQuickDate(value){
+    var candidates = [
+      { pattern: /(20\d{2})\s*[.\-/]\s*(\d{1,2})\s*[.\-/]\s*(\d{1,2})/, year: 1, month: 2, day: 3 },
+      { pattern: /(?:(20\d{2})\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/, year: 1, month: 2, day: 3 },
+      { pattern: /(?:^|[^\d])(\d{1,2})\s*\/\s*(\d{1,2})(?!\s*\d)/, year: 0, month: 1, day: 2 }
+    ];
+    for (var i = 0; i < candidates.length; i += 1) {
+      var rule = candidates[i];
+      var match = value.match(rule.pattern);
+      if (!match) continue;
+      var month = Number(match[rule.month]);
+      var day = Number(match[rule.day]);
+      var year = rule.year && match[rule.year] ? Number(match[rule.year]) : resolveUpcomingYear(month, day);
+      if (!isRealDate(year, month, day)) continue;
+      var matched = match[0].replace(/^[^\d]+/, '');
+      return {
+        date: year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0'),
+        matched: matched,
+        index: value.indexOf(matched)
+      };
+    }
+    return null;
+  }
+
+  function removeOnce(value, fragment){
+    if (!fragment) return value;
+    var index = value.indexOf(fragment);
+    if (index === -1) return value;
+    return value.slice(0, index) + ' ' + value.slice(index + fragment.length);
+  }
+
+  function tidyQuickText(value){
+    return String(value || '')
+      .replace(/\s+/g, ' ')
+      .replace(/^[\s,·/|]+|[\s,·/|-]+$/g, '')
+      .trim();
+  }
+
+  // 괄호는 등장 순서대로 첫번째가 강사, 두번째가 상세 장소입니다.
+  function extractQuickParentheses(value){
+    var groups = [];
+    var pattern = /[(（]\s*([^()（）]*?)\s*[)）]/g;
+    var match;
+    while ((match = pattern.exec(value)) !== null) {
+      if (match[1]) groups.push({ text: match[1], matched: match[0] });
+    }
+    return groups;
+  }
+
+  function parseQuickCourseInput(raw){
+    var source = String(raw || '').replace(/\s+/g, ' ').trim();
+    if (!source) return null;
+
+    var working = source;
+    var groups = extractQuickParentheses(working);
+    groups.forEach(function(group){
+      working = removeOnce(working, group.matched);
+    });
+
+    var time = extractQuickTime(working);
+    if (time) working = removeOnce(working, time.matched);
+    var date = extractQuickDate(working);
+    if (date) working = removeOnce(working, date.matched);
+
+    // 제목과 지역은 마지막 하이픈을 기준으로 나눕니다.
+    var separator = null;
+    var separatorPattern = /\s*[-–—]\s*/g;
+    var found;
+    while ((found = separatorPattern.exec(working)) !== null) {
+      if (found[0].trim() === '' ) continue;
+      separator = found;
+    }
+
+    var title = working;
+    var location = '';
+    if (separator) {
+      title = working.slice(0, separator.index);
+      location = working.slice(separator.index + separator[0].length);
+    }
+
+    return {
+      title: tidyQuickText(title),
+      location: tidyQuickText(location),
+      eventDate: date ? date.date : '',
+      startTime: time ? time.time : '',
+      instructor: groups[0] ? tidyQuickText(groups[0].text) : '',
+      address: groups[1] ? tidyQuickText(groups[1].text) : ''
+    };
+  }
+
+  function setQuickFillStatus(message, isError){
+    var status = $('quickFillStatus');
+    if (!status) return;
+    status.textContent = message || '';
+    status.classList.toggle('is-error', Boolean(isError));
+  }
+
+  function applyQuickFill(){
+    var parsed = parseQuickCourseInput($('quickFillInput').value);
+    var hasValue = parsed && (parsed.title || parsed.location || parsed.eventDate || parsed.startTime || parsed.instructor || parsed.address);
+    if (!hasValue) {
+      setQuickFillStatus('읽을 수 있는 내용이 없습니다. 예) AI리더스 제미나이 신청 - 군포 9월 7일 10:00 (문건우) (한세대학교 본관 7층 세미나실)', true);
+      return;
+    }
+
+    var applied = [];
+    if (parsed.title) {
+      $('title').value = parsed.title;
+      applied.push('강연명 "' + parsed.title + '"');
+    }
+    if (parsed.location) {
+      $('location').value = parsed.location;
+      applied.push('지역 ' + parsed.location);
+    }
+    if (parsed.eventDate) {
+      $('eventDate').value = parsed.eventDate;
+      applied.push('강연일 ' + parsed.eventDate);
+    }
+    if (parsed.startTime) {
+      renderEventTimeControl(parsed.startTime, '');
+      applied.push('시간 ' + $('eventTime').value);
+    }
+    if (parsed.instructor) {
+      fillInstructor(parsed.instructor);
+      applied.push('강사 ' + parsed.instructor);
+    }
+    if (parsed.address) {
+      $('address').value = parsed.address;
+      applied.push('상세 장소 ' + parsed.address);
+    }
+    if (parsed.eventDate) {
+      var badgeValue = syncAutoBadges();
+      if (badgeValue) applied.push('카드 배지 ' + badgeValue);
+    }
+
+    if (!applied.length) {
+      setQuickFillStatus('채울 수 있는 값을 찾지 못했습니다.', true);
+      return;
+    }
+
+    var message = '적용됨 · ' + applied.join(' / ');
+    if (editingSessions.length) {
+      message += ' (회차가 등록되어 있어 지역·강연일·시간은 공개 페이지에서 사용되지 않습니다)';
+    }
+    setQuickFillStatus(message, false);
   }
 
   function isValidTimeRange(value){
@@ -1417,6 +1785,8 @@
     setImageValue('thumbImg', course ? course.thumbImg || '' : '', '');
     setImageValue('detailImg', course ? course.detailImg || '' : '', '');
     $('eventDate').value = course ? course.eventDate || '' : '';
+    $('quickFillInput').value = '';
+    setQuickFillStatus('', false);
     fillEventTime(course ? course.eventTime || '' : '10:00 - 13:00');
     $('mealBreakMinutes').value = course ? Number(course.mealBreakMinutes || 0) : 0;
     $('applicantCount').value = course ? course.applicantCount || 0 : 0;
@@ -1436,14 +1806,15 @@
 
   function sessionToEditState(session){
     var parts = splitEventTimeParts(session && session.eventTime);
+    var range = normalizeTimeRange(parts.start, parts.end);
     return {
       id: (session && session.id) || store.createSessionId(),
       region: (session && session.region) || '',
       location: (session && session.location) || '',
       address: (session && session.address) || '',
       eventDate: (session && session.eventDate) || '',
-      startTime: parts.start,
-      endTime: parts.end,
+      startTime: range.start,
+      endTime: range.end,
       instructor: (session && session.instructor) || '',
       status: (session && session.status) || 'open',
       applicantCount: Number(session && session.applicantCount || 0)
@@ -1496,7 +1867,13 @@
         + '</div>'
         + '<div class="session-pair-row">'
         + '<div class="field field-inline"><label>날짜</label><input type="date" data-session-field="eventDate" value="' + store.escapeHtml(item.eventDate) + '"/></div>'
-        + '<div class="field field-inline"><label>시간 (24시간제, 예: 14:30)</label><div class="time-control"><input type="text" inputmode="numeric" pattern="[0-2][0-9]:[0-5][0-9]" maxlength="5" placeholder="10:00" data-session-field="startTime" value="' + store.escapeHtml(item.startTime) + '"/><span>~</span><input type="text" inputmode="numeric" pattern="[0-2][0-9]:[0-5][0-9]" maxlength="5" placeholder="13:00" data-session-field="endTime" value="' + store.escapeHtml(item.endTime) + '"/></div></div>'
+        + '<div class="field field-inline"><label>시간</label><div class="time-field">'
+        + timeSlotToggleHtml(slotForStartTime(item.startTime).key, 'data-session-slot')
+        + '<div class="time-control">'
+        + '<select data-session-field="startTime" aria-label="회차 시작 시간">' + startTimeOptionsHtml(item.startTime) + '</select>'
+        + '<span>~</span>'
+        + '<select data-session-field="endTime" aria-label="회차 종료 시간">' + endTimeOptionsHtml(item.startTime, item.endTime) + '</select>'
+        + '</div></div></div>'
         + '</div>'
         + '<div class="session-pair-row">'
         + '<div class="field field-inline"><label>강사</label><input type="text" data-session-field="instructor" value="' + store.escapeHtml(item.instructor) + '" placeholder="예: 아이온"/></div>'
@@ -1530,7 +1907,7 @@
     var hasSessions = editingSessions.length > 0;
     document.querySelectorAll('[data-single-session-field]').forEach(function(field){
       field.classList.toggle('is-disabled-by-sessions', hasSessions);
-      field.querySelectorAll('input, select').forEach(function(input){
+      field.querySelectorAll('input, select, [data-time-slot]').forEach(function(input){
         input.disabled = hasSessions;
       });
     });
@@ -2141,10 +2518,35 @@
     renderRows();
   });
 
-  $('eventStartTime').addEventListener('change', syncEventTime);
+  // 강연일·지역을 직접 고쳐도 카드 배지가 따라오게 합니다.
+  $('eventDate').addEventListener('change', syncAutoBadges);
+  $('location').addEventListener('change', syncAutoBadges);
+
+  $('quickFillApplyBtn').addEventListener('click', applyQuickFill);
+  $('quickFillClearBtn').addEventListener('click', function(){
+    $('quickFillInput').value = '';
+    setQuickFillStatus('', false);
+    $('quickFillInput').focus();
+  });
+  // 빠른 입력 칸에서 Enter가 강연 저장(폼 제출)으로 이어지지 않게 막습니다.
+  $('quickFillInput').addEventListener('keydown', function(event){
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    applyQuickFill();
+  });
+
+  // 시작 시간이 바뀌면 종료 시간은 3시간 기준(최대 22:00)으로 다시 계산합니다.
+  $('eventStartTime').addEventListener('change', function(){
+    renderEventTimeControl($('eventStartTime').value, '');
+  });
   $('eventEndTime').addEventListener('change', syncEventTime);
-  $('eventStartTime').addEventListener('input', syncEventTime);
-  $('eventEndTime').addEventListener('input', syncEventTime);
+  $('eventTimeSlot').addEventListener('click', function(event){
+    var button = event.target.closest('[data-time-slot]');
+    if (!button || button.disabled) return;
+    var slot = findTimeSlot(button.getAttribute('data-time-slot'));
+    if (!slot) return;
+    renderEventTimeControl(slot.defaultStart, '');
+  });
 
   $('addSessionBtn').addEventListener('click', function(){
     editingSessions.push(sessionToEditState(null));
@@ -2161,7 +2563,31 @@
     item[field] = event.target.value;
   });
 
+  // 회차 시작 시간이 바뀌면 종료 시간과 선택 가능한 범위를 다시 계산합니다.
+  $('sessionList').addEventListener('change', function(event){
+    if (event.target.getAttribute('data-session-field') !== 'startTime') return;
+    var row = event.target.closest('[data-session-id]');
+    var id = row && row.getAttribute('data-session-id');
+    var item = editingSessions.find(function(session){ return session.id === id; });
+    if (!item) return;
+    item.startTime = normalizeTime(event.target.value) || item.startTime;
+    item.endTime = defaultEndTime(item.startTime);
+    renderSessionRows();
+  });
+
   $('sessionList').addEventListener('click', function(event){
+    var slotButton = event.target.closest('[data-session-slot]');
+    if (slotButton) {
+      var slot = findTimeSlot(slotButton.getAttribute('data-session-slot'));
+      var slotRow = slotButton.closest('[data-session-id]');
+      var slotId = slotRow && slotRow.getAttribute('data-session-id');
+      var slotItem = editingSessions.find(function(session){ return session.id === slotId; });
+      if (!slot || !slotItem) return;
+      slotItem.startTime = slot.defaultStart;
+      slotItem.endTime = defaultEndTime(slotItem.startTime);
+      renderSessionRows();
+      return;
+    }
     var removeId = event.target.getAttribute('data-remove-session');
     var duplicateId = event.target.getAttribute('data-duplicate-session');
     if (duplicateId) {
