@@ -64,13 +64,6 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=1509286323738952&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
-<!-- Meta Pixel Purchase Event -->
-<script>
-if (typeof fbq === 'function') {
-  fbq('track', 'Purchase');
-}
-</script>
-<!-- End Meta Pixel Purchase Event -->
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -177,6 +170,26 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     course_title: courseTitle,
     course_type: courseType
   });
+  // 신청 완료 1건당 Purchase를 한 번만 전송한다.
+  // 완료 URL 직접 접속과 새로고침은 전환으로 집계하지 않는다.
+  var applicationId = payload.applicationId || '';
+  if (applicationId && typeof window.aiLeadersTrackMeta === 'function') {
+    var sentKey = 'aiLeadersPurchaseSent:' + applicationId;
+    var alreadySent = false;
+    try { alreadySent = sessionStorage.getItem(sentKey) === '1'; } catch (error) {}
+    if (!alreadySent) {
+      try { sessionStorage.setItem(sentKey, '1'); } catch (error) {}
+      window.aiLeadersTrackMeta('Purchase', {
+        content_name: courseTitle || '강연 신청',
+        content_category: courseType === 'paid' ? 'paid_lecture' : 'free_lecture',
+        content_ids: courseCode ? [courseCode] : [],
+        content_type: 'product',
+        num_items: 1,
+        value: 0,
+        currency: 'KRW'
+      });
+    }
+  }
 })();
 </script>
 <script src="/assets/mobile-nav.js"></script>
