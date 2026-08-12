@@ -145,17 +145,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   if (location.search && history.replaceState) {
     history.replaceState(null, document.title, '/application-complete/');
   }
-  window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({
-    event: 'lecture_application_complete',
-    course_id: courseId,
-    course_code: courseCode,
-    course_title: courseTitle,
-    course_type: courseType
-  });
-  // 신청 완료 1건당 Purchase를 한 번만 전송한다.
+  // 신청 완료 1건당 Google Ads 완료 이벤트를 한 번만 전송한다.
   // 완료 URL 직접 접속과 새로고침은 전환으로 집계하지 않는다.
   var applicationId = payload.applicationId || '';
+  var dlKey = 'aiLeadersDlPushed:' + applicationId;
+  var dlAlready = false;
+  try { dlAlready = sessionStorage.getItem(dlKey) === '1'; } catch (error) {}
+  if (applicationId && !dlAlready) {
+    try { sessionStorage.setItem(dlKey, '1'); } catch (error) {}
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'lecture_application_complete',
+      course_id: courseId,
+      course_code: courseCode,
+      course_title: courseTitle,
+      course_type: courseType
+    });
+  }
+  // 신청 완료 1건당 Purchase를 한 번만 전송한다.
+  // 완료 URL 직접 접속과 새로고침은 전환으로 집계하지 않는다.
   if (applicationId && typeof window.aiLeadersTrackMeta === 'function') {
     var sentKey = 'aiLeadersPurchaseSent:' + applicationId;
     var alreadySent = false;
