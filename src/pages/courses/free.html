@@ -302,6 +302,37 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     font-size: 15px; font-weight: 600; color: var(--ink);
   }
   .region-search-bar .dd-search-input::placeholder { color: #9aa5b1; font-weight: 500; }
+  .month-filter { position: relative; flex: none; }
+  .month-filter-btn {
+    display: inline-flex; align-items: center; gap: 8px; height: 38px; max-width: 46vw;
+    padding: 0 12px 0 14px; border: 1px solid var(--line); border-radius: 12px;
+    background: #fff; color: var(--ink); font-size: 15px; font-weight: 600;
+    font-family: inherit; cursor: pointer; white-space: nowrap;
+  }
+  .month-filter-btn .mf-cal { display: none; width: 20px; height: 20px; flex: none; }
+  .month-filter-btn .mf-label { overflow: hidden; text-overflow: ellipsis; }
+  .month-filter-btn .mf-chev { width: 16px; height: 16px; color: var(--muted); flex: none; }
+  .month-filter.is-active .month-filter-btn { border-color: var(--brand); color: var(--brand); }
+  .month-filter-menu {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
+    min-width: 140px; margin: 0; padding: 6px; list-style: none;
+    background: #fff; border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(12,24,40,.16); max-height: 260px; overflow-y: auto;
+  }
+  .month-filter-menu[hidden] { display: none; }
+  .month-filter-menu li {
+    padding: 9px 12px; border-radius: 8px; font-size: 15px; font-weight: 600;
+    color: var(--ink); cursor: pointer; white-space: nowrap;
+  }
+  .month-filter-menu li:hover { background: #f1f5f9; }
+  .month-filter-menu li.is-sel { color: var(--brand); background: var(--brand-50); }
+  @media (min-width: 641px) { .month-filter-btn { height: 46px; } }
+  /* 모바일: 달력 아이콘만(중앙) 표시, 라벨·화살표 숨김. 드롭다운은 버튼 왼쪽 기준 정렬 */
+  @media (max-width: 640px) {
+    .month-filter-btn { width: 46px; max-width: 46px; padding: 0; justify-content: center; }
+    .month-filter-btn .mf-cal { display: block; }
+    .month-filter-btn .mf-label, .month-filter-btn .mf-chev { display: none; }
+  }
   @media (min-width: 641px) {
     .region-search-bar { height: 46px; padding: 0 16px; }
   }
@@ -412,7 +443,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div data-site-nav></div>
 <script src="/assets/site-layout.js?v=20260721-admin-entry-1"></script>
 
-<header class="page-hero aurora-hero" style="padding-top: calc(var(--nav-h) + 130px); padding-bottom: 150px;">
+<style>#courseListHero,#courseListMain{visibility:hidden}body.course-list-ready #courseListHero,body.course-list-ready #courseListMain{visibility:visible}
+#courseListLoading{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#fff;z-index:40}
+body.course-list-loading #courseListLoading{display:flex}
+body.course-list-ready #courseListLoading{display:none}
+#courseListLoading .cl-bar{width:180px;height:4px;border-radius:999px;background:#e8eef7;overflow:hidden;position:relative}
+#courseListLoading .cl-bar>span{position:absolute;top:0;left:-40%;width:40%;height:100%;background:#0172fe;border-radius:999px;animation:clMove 1.1s ease-in-out infinite}
+@keyframes clMove{0%{left:-40%}100%{left:100%}}</style>
+<noscript><style>#courseListHero,#courseListMain{visibility:visible!important}#courseListLoading{display:none!important}</style></noscript>
+<div id="courseListLoading" aria-hidden="true"><div class="cl-bar"><span></span></div></div>
+<header id="courseListHero" class="page-hero aurora-hero" style="padding-top: calc(var(--nav-h) + 130px); padding-bottom: 150px;">
   <div class="aurora-base"></div>
   <div class="aurora-wave aurora-wave-1"></div>
   <div class="aurora-wave aurora-wave-2"></div>
@@ -425,7 +465,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </header>
 
-<main>
+<main id="courseListMain">
   <section class="section" id="courses">
     <div class="container">
 
@@ -441,6 +481,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <div class="subfilters reveal" role="group" aria-label="지역 필터">
+        <div class="month-filter" id="monthFilter">
+          <button type="button" class="month-filter-btn" id="monthFilterBtn" aria-haspopup="listbox" aria-expanded="false" onclick="toggleMonthMenu(event)">
+            <svg class="mf-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span class="mf-label" id="monthFilterLabel">전체 기간</span>
+            <svg class="mf-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <ul class="month-filter-menu" id="monthFilterMenu" role="listbox" aria-label="월별 강연 선택" hidden></ul>
+        </div>
         <div class="region-search-bar">
           <svg class="dd-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" class="dd-search-input" id="mainRegionSearchInput" placeholder="찾으시는 지역을 입력해주세요" oninput="handleMainRegionSearch(this.value)" autocomplete="off"/>
@@ -689,7 +737,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script src="/assets/course-page-renderer.js?v=20260803-thumb-flicker-1"></script>
 <script src="/assets/applications-store.js?v=20260729-event-date-1"></script>
 <script>
-CoursePageRenderer.render({ type: 'free', mobilePageSize: 6 });
+CoursePageRenderer.render({ type: 'free', mobilePageSize: 8 });
 </script>
 <script>
 (function(){
@@ -728,12 +776,84 @@ function handleMainRegionSearch(value) {
     window.CoursePageRenderer.searchLocation(value);
   }
 }
-// 뒤로가기(bfcache) 복원 시 검색창이 비워지지만 필터는 남는 문제 보정: 검색창을 필터 상태와 일치
+// 뒤로가기(bfcache) 복원 시, 이전에 지역 검색이나 월 필터를 썼다면 모두 해제하고 전체 카드를 다시 보여준다.
 window.addEventListener('pageshow', function () {
+  if (!window.__lastRegionSearch && !window.__lastMonthFilter) return; // 검색·필터 쓴 적 없으면(최초 로드 포함) 아무것도 안 함
+  window.__lastRegionSearch = '';
   var input = document.getElementById('mainRegionSearchInput');
-  var last = window.__lastRegionSearch || '';
-  if (input && last && input.value !== last) { input.value = last; }
+  if (input) input.value = '';
+  setMonthButton('', '전체 기간');
+  closeMonthMenu();
+  if (window.CoursePageRenderer && window.CoursePageRenderer.resetSearchAndMonth) {
+    window.CoursePageRenderer.resetSearchAndMonth(); // 검색+월 해제 + 1페이지부터 전체 재렌더(1회)
+  }
 });
+
+// ── 월별 강연 필터 (커스텀 드롭다운: 위치·색 완전 제어) ──
+function setMonthButton(value, label) {
+  window.__lastMonthFilter = value || '';
+  var wrap = document.getElementById('monthFilter');
+  var lbl = document.getElementById('monthFilterLabel');
+  if (lbl) lbl.textContent = label || '전체 기간';
+  if (wrap) wrap.classList.toggle('is-active', !!value); // 선택 시 파란 테두리·아이콘
+}
+function closeMonthMenu() {
+  var menu = document.getElementById('monthFilterMenu');
+  var btn = document.getElementById('monthFilterBtn');
+  if (menu) menu.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+function toggleMonthMenu(event) {
+  if (event) event.stopPropagation();
+  var menu = document.getElementById('monthFilterMenu');
+  var btn = document.getElementById('monthFilterBtn');
+  if (!menu) return;
+  var willOpen = menu.hidden;
+  if (willOpen) buildMonthMenu();
+  menu.hidden = !willOpen;
+  if (btn) btn.setAttribute('aria-expanded', String(willOpen));
+}
+function selectMonth(value, label) {
+  setMonthButton(value, label);
+  closeMonthMenu();
+  if (window.CoursePageRenderer && window.CoursePageRenderer.filterByMonth) {
+    window.CoursePageRenderer.filterByMonth(value);
+  }
+}
+function buildMonthMenu() {
+  var menu = document.getElementById('monthFilterMenu');
+  if (!menu || !window.CoursePageRenderer || !window.CoursePageRenderer.getAvailableMonths) return;
+  var months = window.CoursePageRenderer.getAvailableMonths();
+  var cur = window.__lastMonthFilter || '';
+  var items = [{ key: '', label: '전체 기간' }].concat(months);
+  menu.innerHTML = '';
+  items.forEach(function (it) {
+    var li = document.createElement('li');
+    li.setAttribute('role', 'option');
+    li.textContent = it.label;
+    if (it.key === cur) { li.className = 'is-sel'; li.setAttribute('aria-selected', 'true'); }
+    li.addEventListener('click', function () { selectMonth(it.key, it.label); });
+    menu.appendChild(li);
+  });
+}
+// 메뉴 밖을 클릭하면 닫기
+document.addEventListener('click', function (e) {
+  var wrap = document.getElementById('monthFilter');
+  if (wrap && !wrap.contains(e.target)) closeMonthMenu();
+});
+// 선택했던 달이 데이터에서 사라지면 '전체 기간'으로 복귀
+function refreshMonthSelection() {
+  var cur = window.__lastMonthFilter || '';
+  if (!cur || !window.CoursePageRenderer || !window.CoursePageRenderer.getAvailableMonths) return;
+  var months = window.CoursePageRenderer.getAvailableMonths();
+  var found = false;
+  for (var i = 0; i < months.length; i++) { if (months[i].key === cur) { found = true; break; } }
+  if (!found) { setMonthButton('', '전체 기간'); if (window.CoursePageRenderer.filterByMonth) window.CoursePageRenderer.filterByMonth(''); }
+}
+if (window.CourseStore) {
+  if (window.CourseStore.ready) { window.CourseStore.ready().then(refreshMonthSelection).catch(function(){}); }
+  if (window.CourseStore.subscribe) { window.CourseStore.subscribe(refreshMonthSelection); }
+}
 
 function filterRegion(region, btn) {
   if (window.CoursePageRenderer && window.CoursePageRenderer.filterRegion) {
@@ -1058,5 +1178,17 @@ async function submitForm(e) {
 <script src="/assets/mobile-nav.js"></script>
 <script src="/assets/chatbot-launcher.js"></script>
 <script src="/assets/mobile-tabbar.js?v=20260723-5"></script>
+<script>
+(function(){
+  var revealed=false;
+  var showTimer=setTimeout(function(){ if(!revealed){ document.body.classList.add('course-list-loading'); } }, 200); /* 로딩이 0.2초 넘게 걸릴 때만 로딩바 표시 */
+  function reveal(){ if(revealed) return; revealed=true; clearTimeout(showTimer); document.body.classList.add('course-list-ready'); }
+  setTimeout(reveal, 4000); /* 안전장치: 최대 4초 후 무조건 노출 */
+  function afterReady(){ if(window.requestAnimationFrame){ requestAnimationFrame(function(){ requestAnimationFrame(reveal); }); } else { reveal(); } }
+  if(window.CourseStore && typeof window.CourseStore.ready==='function'){
+    window.CourseStore.ready().then(afterReady).catch(reveal); /* 강연 목록 로딩 완료 후 노출 */
+  } else if(document.readyState!=='loading'){ afterReady(); } else { document.addEventListener('DOMContentLoaded', afterReady); }
+})();
+</script>
 </body>
 </html>

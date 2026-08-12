@@ -30,6 +30,12 @@
     return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
   }
 
+  function courseMonthKey(course) {
+    var d = toDate(course && course.eventDate);
+    if (!d) return '';
+    return String(d.getMonth() + 1); // 연도 무시, 월(1~12)만
+  }
+
   function daysUntil(value) {
     var target = toDate(value);
     if (!target) return null;
@@ -299,7 +305,7 @@
   function pageSize() {
     var isMobile = global.matchMedia && global.matchMedia('(max-width:540px)').matches;
     if (isMobile) return (pagedState && pagedState.mobilePageSize) || 4;
-    return 6;
+    return 9;
   }
 
   function allCoursesForState() {
@@ -313,11 +319,14 @@
     var currentFilter = pagedState && pagedState.filter ? pagedState.filter : 'all';
     var currentRegion = pagedState && pagedState.region ? pagedState.region : 'all';
     var locationQuery = pagedState && pagedState.locationQuery ? pagedState.locationQuery : '';
+    var currentMonth = pagedState && pagedState.month ? pagedState.month : '';
     return allCoursesForState().filter(function (course) {
       var matchesFilter = currentFilter === 'all' || filterKey(course) === currentFilter;
       var matchesRegion = currentRegion === 'all' || regionKey(course) === currentRegion;
       var matchesLocation = !locationQuery || String(course.location || '').indexOf(locationQuery) !== -1;
-      return matchesFilter && matchesRegion && matchesLocation;
+      // 날짜(eventDate) 없는 강연은 courseMonthKey가 ''이라 특정 월 선택 시 제외되고 '전체'에서만 노출됨
+      var matchesMonth = !currentMonth || courseMonthKey(course) === currentMonth;
+      return matchesFilter && matchesRegion && matchesLocation && matchesMonth;
     });
   }
 
@@ -539,9 +548,39 @@
     renderCurrentPage();
   }
 
+  function filterByMonthPaged(value) {
+    if (!pagedState) return;
+    pagedState.month = String(value || '');
+    pagedState.page = 0;
+    renderCurrentPage();
+  }
+
+  // 뒤로가기(bfcache) 복원 시 검색+월 필터를 한 번에 해제하고 전체를 다시 렌더 (재렌더 1회)
+  function resetSearchAndMonthPaged() {
+    if (!pagedState) return;
+    pagedState.locationQuery = '';
+    pagedState.month = '';
+    pagedState.page = 0;
+    renderCurrentPage();
+  }
+
+  // 실제 강연이 잡힌 달만 오름차순으로 (연도 포함). [{ key:'2026-08', label:'2026년 8월' }, ...]
+  function availableMonthsPaged() {
+    var seen = {};
+    var list = [];
+    allCoursesForState().forEach(function (course) {
+      var key = courseMonthKey(course);
+      if (!key || seen[key]) return;
+      seen[key] = true;
+      list.push({ key: key, label: key + '월' });
+    });
+    list.sort(function (a, b) { return Number(a.key) - Number(b.key); });
+    return list;
+  }
+
   function render(options) {
     renderPaged(options);
   }
 
-  global.CoursePageRenderer = { render: renderPaged, filter: filterPaged, filterRegion: filterRegionPaged, searchLocation: searchLocationPaged, selectLocation: selectLocationPaged };
+  global.CoursePageRenderer = { render: renderPaged, filter: filterPaged, filterRegion: filterRegionPaged, searchLocation: searchLocationPaged, selectLocation: selectLocationPaged, filterByMonth: filterByMonthPaged, getAvailableMonths: availableMonthsPaged, resetSearchAndMonth: resetSearchAndMonthPaged };
 })(window);
