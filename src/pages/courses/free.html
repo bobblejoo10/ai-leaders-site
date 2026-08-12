@@ -312,14 +312,16 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .month-filter-btn .mf-cal { display: none; width: 20px; height: 20px; flex: none; }
   .month-filter-btn .mf-label { overflow: hidden; text-overflow: ellipsis; }
   .month-filter-btn .mf-chev { width: 16px; height: 16px; color: var(--muted); flex: none; }
+  .month-filter-btn > svg, .month-filter-btn > span { pointer-events: none; }
   .month-filter.is-active .month-filter-btn { border-color: var(--brand); color: var(--brand); }
   .month-filter-menu {
-    position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
+    display: none;
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
     min-width: 140px; margin: 0; padding: 6px; list-style: none;
     background: #fff; border: 1px solid var(--line); border-radius: 12px;
     box-shadow: 0 12px 28px rgba(12,24,40,.16); max-height: 260px; overflow-y: auto;
   }
-  .month-filter-menu[hidden] { display: none; }
+  .month-filter-menu.open { display: block; }
   .month-filter-menu li {
     padding: 9px 12px; border-radius: 8px; font-size: 15px; font-weight: 600;
     color: var(--ink); cursor: pointer; white-space: nowrap;
@@ -487,7 +489,7 @@ body.course-list-ready #courseListLoading{display:none}
             <span class="mf-label" id="monthFilterLabel">전체 기간</span>
             <svg class="mf-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-          <ul class="month-filter-menu" id="monthFilterMenu" role="listbox" aria-label="월별 강연 선택" hidden></ul>
+          <ul class="month-filter-menu" id="monthFilterMenu" role="listbox" aria-label="월별 강연 선택"></ul>
         </div>
         <div class="region-search-bar">
           <svg class="dd-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -734,7 +736,7 @@ body.course-list-ready #courseListLoading{display:none}
 
 <script src="/assets/supabase-store-common.js?v=20260729-storage-fix-1"></script>
 <script src="/assets/courses-store.js?v=20260729-cardfields-fix-1"></script>
-<script src="/assets/course-page-renderer.js?v=20260803-thumb-flicker-1"></script>
+<script src="/assets/course-page-renderer.js?v=20260812-pagesize-monthfilter-1"></script>
 <script src="/assets/applications-store.js?v=20260729-event-date-1"></script>
 <script>
 CoursePageRenderer.render({ type: 'free', mobilePageSize: 8 });
@@ -797,21 +799,31 @@ function setMonthButton(value, label) {
   if (lbl) lbl.textContent = label || '전체 기간';
   if (wrap) wrap.classList.toggle('is-active', !!value); // 선택 시 파란 테두리·아이콘
 }
+function monthOutsideClose(e) {
+  var wrap = document.getElementById('monthFilter');
+  if (wrap && !wrap.contains(e.target)) closeMonthMenu();
+}
 function closeMonthMenu() {
   var menu = document.getElementById('monthFilterMenu');
   var btn = document.getElementById('monthFilterBtn');
-  if (menu) menu.hidden = true;
+  if (menu) menu.classList.remove('open');
   if (btn) btn.setAttribute('aria-expanded', 'false');
+  document.removeEventListener('click', monthOutsideClose);
 }
 function toggleMonthMenu(event) {
-  if (event) event.stopPropagation();
+  if (event) { event.preventDefault(); event.stopPropagation(); }
   var menu = document.getElementById('monthFilterMenu');
   var btn = document.getElementById('monthFilterBtn');
   if (!menu) return;
-  var willOpen = menu.hidden;
-  if (willOpen) buildMonthMenu();
-  menu.hidden = !willOpen;
-  if (btn) btn.setAttribute('aria-expanded', String(willOpen));
+  if (!menu.classList.contains('open')) {
+    buildMonthMenu();
+    menu.classList.add('open');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+    // 여는 탭이 바로 '바깥 클릭 닫기'에 걸리지 않도록 다음 틱에 리스너 등록 (모바일 터치 안전)
+    setTimeout(function () { document.addEventListener('click', monthOutsideClose); }, 0);
+  } else {
+    closeMonthMenu();
+  }
 }
 function selectMonth(value, label) {
   setMonthButton(value, label);
@@ -836,11 +848,7 @@ function buildMonthMenu() {
     menu.appendChild(li);
   });
 }
-// 메뉴 밖을 클릭하면 닫기
-document.addEventListener('click', function (e) {
-  var wrap = document.getElementById('monthFilter');
-  if (wrap && !wrap.contains(e.target)) closeMonthMenu();
-});
+// (메뉴 밖 클릭 닫기는 메뉴가 열릴 때만 monthOutsideClose로 등록/해제한다)
 // 선택했던 달이 데이터에서 사라지면 '전체 기간'으로 복귀
 function refreshMonthSelection() {
   var cur = window.__lastMonthFilter || '';
