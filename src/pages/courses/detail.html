@@ -359,7 +359,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
 
 <div data-site-nav></div>
-<script src="/assets/site-layout.js?v=20260721-admin-entry-1"></script>
+<script src="/assets/site-layout.js?v=20260814-attribution-fallback-1"></script>
 
 <style>#courseHero,#mainContent{visibility:hidden}body.course-detail-ready #courseHero,body.course-detail-ready #mainContent{visibility:visible}
 #courseLoading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;z-index:40}
@@ -1387,12 +1387,19 @@ async function submitForm(e) {
     courseType: course.type === 'paid' ? 'paid' : 'free',
     source: 'course-detail',
     detailPath: location.pathname,
-    completedAt: new Date().toISOString()
+    completedAt: new Date().toISOString(),
+    attribution: window.AiLeadersLayout && typeof window.AiLeadersLayout.getAttributionContext === 'function'
+      ? window.AiLeadersLayout.getAttributionContext()
+      : {}
   };
-  try {
-    sessionStorage.setItem('aiLeadersLastApplication', JSON.stringify(completionPayload));
-  } catch (error) {}
-  window.location.href = '/application-complete/';
+  if (window.AiLeadersLayout && typeof window.AiLeadersLayout.saveCompletionPayload === 'function') {
+    window.AiLeadersLayout.saveCompletionPayload(completionPayload);
+  } else {
+    try { sessionStorage.setItem('aiLeadersLastApplication', JSON.stringify(completionPayload)); } catch (error) {}
+  }
+  window.location.href = window.AiLeadersLayout && typeof window.AiLeadersLayout.buildCompletionUrl === 'function'
+    ? window.AiLeadersLayout.buildCompletionUrl(completionPayload)
+    : '/application-complete/';
 }
 
 // ── Nav & Reveal ─────────────────────────────────────────────────────────────
