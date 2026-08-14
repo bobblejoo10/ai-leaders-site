@@ -2,6 +2,131 @@
   'use strict';
 
   var ADMIN_ACCESS_PATH = '/admin-dashboard/';
+  var ATTRIBUTION_STORAGE_KEY = 'aiLeadersAttributionContext';
+  var COMPLETION_STORAGE_KEY = 'aiLeadersLastApplication';
+  var ATTRIBUTION_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
+  var ATTRIBUTION_QUERY_KEYS = [
+    'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
+    'gclid', 'gbraid', 'wbraid', 'dclid', 'fbclid', 'msclkid', 'ttclid'
+  ];
+
+  function storageRead(storage, key) {
+    if (!storage) return { available: false, value: null };
+    try {
+      return { available: true, value: storage.getItem(key) };
+    } catch (error) {
+      return { available: false, value: null };
+    }
+  }
+
+  function storageWrite(storage, key, value) {
+    if (!storage) return false;
+    try {
+      storage.setItem(key, value);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function safeAttributionValue(value) {
+    var text = String(value || '').trim();
+    if (!text || text.length > 200 || /[\u0000-\u001f\u007f]/.test(text)) return '';
+    return text;
+  }
+
+  function parseAttributionRecord(raw) {
+    if (!raw) return {};
+    try {
+      var record = JSON.parse(raw);
+      if (!record || typeof record !== 'object') return {};
+      var capturedAt = Number(record.capturedAt || 0);
+      if (capturedAt && Date.now() - capturedAt > ATTRIBUTION_MAX_AGE_MS) return {};
+      return record;
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function captureAttributionContext() {
+    var sessionStore = null;
+    var localStore = null;
+    try { sessionStore = global.sessionStorage; } catch (error) {}
+    try { localStore = global.localStorage; } catch (error) {}
+    var sessionRecord = storageRead(sessionStore, ATTRIBUTION_STORAGE_KEY);
+    var localRecord = storageRead(localStore, ATTRIBUTION_STORAGE_KEY);
+    var context = Object.assign({}, parseAttributionRecord(localRecord.value), parseAttributionRecord(sessionRecord.value));
+    var params = new URLSearchParams(global.location.search || '');
+    var changed = false;
+
+    ATTRIBUTION_QUERY_KEYS.forEach(function (key) {
+      var value = safeAttributionValue(params.get(key));
+      if (value && !context[key]) {
+        context[key] = value;
+        changed = true;
+      }
+    });
+
+    if (!context.referrerOrigin && document.referrer) {
+      try {
+        var referrerUrl = new URL(document.referrer);
+        if (referrerUrl.origin !== global.location.origin) {
+          context.referrerOrigin = safeAttributionValue(referrerUrl.origin);
+          changed = true;
+        }
+      } catch (error) {}
+    }
+
+    if (!context.capturedAt && Object.keys(context).length) {
+      context.capturedAt = Date.now();
+      changed = true;
+    }
+    if (changed) {
+      var serialized = JSON.stringify(context);
+      storageWrite(sessionStore, ATTRIBUTION_STORAGE_KEY, serialized);
+      storageWrite(localStore, ATTRIBUTION_STORAGE_KEY, serialized);
+    }
+    return context;
+  }
+
+  function readCompletionPayload() {
+    var sessionStore = null;
+    var localStore = null;
+    try { sessionStore = global.sessionStorage; } catch (error) {}
+    try { localStore = global.localStorage; } catch (error) {}
+    var sessionRecord = storageRead(sessionStore, COMPLETION_STORAGE_KEY);
+    var localRecord = storageRead(localStore, COMPLETION_STORAGE_KEY);
+    var raw = sessionRecord.value || localRecord.value;
+    if (!raw) return null;
+    try {
+      var payload = JSON.parse(raw);
+      return payload && typeof payload === 'object' ? payload : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function saveCompletionPayload(payload) {
+    var serialized = JSON.stringify(payload || {});
+    var sessionStore = null;
+    var localStore = null;
+    try { sessionStore = global.sessionStorage; } catch (error) {}
+    try { localStore = global.localStorage; } catch (error) {}
+    var saved = false;
+    saved = storageWrite(sessionStore, COMPLETION_STORAGE_KEY, serialized) || saved;
+    saved = storageWrite(localStore, COMPLETION_STORAGE_KEY, serialized) || saved;
+    return saved;
+  }
+
+  function buildCompletionUrl(payload) {
+    var params = new URLSearchParams();
+    ['applicationId', 'courseId', 'courseCode', 'courseTitle', 'courseType'].forEach(function (key) {
+      var value = safeAttributionValue(payload && payload[key]);
+      if (value) params.set(key, value);
+    });
+    var query = params.toString();
+    return '/application-complete/' + (query ? '?' + query : '');
+  }
 
   function ensureGoogleTagManager() {
     // GTM is installed in the public HTML head snippets.
@@ -136,6 +261,7 @@
 
   function renderAll() {
     ensureGoogleTagManager();
+    captureAttributionContext();
     renderNav();
     renderFooter();
     ensureAdminAccessUi();
@@ -147,6 +273,10 @@
     ensureGoogleTagManager: ensureGoogleTagManager,
     ensureGoogleTag: ensureGoogleTag,
     renderAll: renderAll,
+    getAttributionContext: captureAttributionContext,
+    readCompletionPayload: readCompletionPayload,
+    saveCompletionPayload: saveCompletionPayload,
+    buildCompletionUrl: buildCompletionUrl,
     markActiveNav: markActiveNav,
     openAdminAccess: openAdminAccess
   };
