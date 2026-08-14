@@ -18,11 +18,12 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
   // fbq 원본은 Meta 라이브러리가 관리한다. 직접 감싸지 않는다.
   // 이벤트별 중복 방지는 이 헬퍼에서만 처리한다.
   var tracked = {};
-  window.aiLeadersTrackMeta = function(eventName, params) {
+  window.aiLeadersTrackMeta = function(eventName, params, options) {
     if (tracked[eventName]) return;
     tracked[eventName] = true;
     if (typeof window.fbq === 'function') {
-      window.fbq('track', eventName, params || {});
+      if (options) window.fbq('track', eventName, params || {}, options);
+      else window.fbq('track', eventName, params || {});
     }
   };
 })();
@@ -104,7 +105,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
 <div data-site-nav></div>
-<script src="/assets/site-layout.js?v=20260721-admin-entry-1"></script>
+<script src="/assets/site-layout.js?v=20260814-attribution-fallback-1"></script>
 
 <main class="complete-main">
   <section class="complete-panel" aria-labelledby="completeTitle">
@@ -127,16 +128,72 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script>
 (function(){
   var params = new URLSearchParams(location.search);
-  var payload = {};
-  try {
-    payload = JSON.parse(sessionStorage.getItem('aiLeadersLastApplication') || '{}') || {};
-  } catch (error) {
+  var COMPLETION_KEY = 'aiLeadersLastApplication';
+
+  function storageState(storage) {
+    if (!storage) return { available: false, value: null };
+    try { return { available: true, value: storage.getItem(COMPLETION_KEY) }; }
+    catch (error) { return { available: false, value: null }; }
+  }
+
+  function parsePayload(raw) {
+    if (!raw) return null;
+    try {
+      var value = JSON.parse(raw);
+      return value && typeof value === 'object' ? value : null;
+    } catch (error) { return null; }
+  }
+
+  function validApplicationId(value) {
+    return /^app-[a-z0-9]+-[a-z0-9]+$/.test(String(value || ''));
+  }
+
+  function storageFlag(storage, key) {
+    if (!storage) return false;
+    try { return storage.getItem(key) === '1'; } catch (error) { return false; }
+  }
+
+  function markStorageFlag(storage, key) {
+    if (!storage) return;
+    try { storage.setItem(key, '1'); } catch (error) {}
+  }
+
+  var sessionStore = null;
+  var localStore = null;
+  try { sessionStore = window.sessionStorage; } catch (error) {}
+  try { localStore = window.localStorage; } catch (error) {}
+  var sessionState = storageState(sessionStore);
+  var localState = storageState(localStore);
+  var sessionPayload = parsePayload(sessionState.value);
+  var localPayload = parsePayload(localState.value);
+  var queryPayload = {
+    applicationId: params.get('applicationId') || '',
+    courseId: params.get('courseId') || '',
+    courseCode: params.get('courseCode') || '',
+    courseTitle: params.get('courseTitle') || '',
+    courseType: params.get('courseType') === 'paid' ? 'paid' : 'free',
+    source: 'completion-url'
+  };
+  var payload = null;
+  if (sessionPayload && validApplicationId(sessionPayload.applicationId)) {
+    payload = sessionPayload;
+  } else if (localPayload && validApplicationId(localPayload.applicationId)) {
+    payload = localPayload;
+  } else if ((!sessionState.available || !localState.available)
+      && validApplicationId(queryPayload.applicationId)) {
+    // The URL fallback is used only when browser storage is unavailable.
+    // This prevents a copied completion URL from creating a normal conversion.
+    payload = queryPayload;
+  } else {
     payload = {};
   }
   var courseId = payload.courseId || params.get('courseId') || '';
   var courseCode = payload.courseCode || params.get('courseCode') || '';
   var courseTitle = payload.courseTitle || params.get('courseTitle') || '';
   var courseType = payload.courseType || params.get('courseType') || '';
+  var attributionContext = payload.attribution || (window.AiLeadersLayout && typeof window.AiLeadersLayout.getAttributionContext === 'function'
+    ? window.AiLeadersLayout.getAttributionContext()
+    : {});
   var meta = document.getElementById('completeMeta');
   if (courseTitle) {
     meta.textContent = '신청 강연: ' + courseTitle;
@@ -147,29 +204,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
   // 신청 완료 1건당 Google Ads 완료 이벤트를 한 번만 전송한다.
   // 완료 URL 직접 접속과 새로고침은 전환으로 집계하지 않는다.
-  var applicationId = payload.applicationId || '';
+  var applicationId = validApplicationId(payload.applicationId) ? payload.applicationId : '';
   var dlKey = 'aiLeadersDlPushed:' + applicationId;
-  var dlAlready = false;
-  try { dlAlready = sessionStorage.getItem(dlKey) === '1'; } catch (error) {}
+  var dlAlready = storageFlag(sessionStore, dlKey) || storageFlag(localStore, dlKey);
   if (applicationId && !dlAlready) {
-    try { sessionStorage.setItem(dlKey, '1'); } catch (error) {}
+    markStorageFlag(sessionStore, dlKey);
+    markStorageFlag(localStore, dlKey);
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({
       event: 'lecture_application_complete',
+      event_id: applicationId,
+      transaction_id: applicationId,
       course_id: courseId,
       course_code: courseCode,
       course_title: courseTitle,
-      course_type: courseType
+      course_type: courseType,
+      attribution_context: attributionContext
     });
   }
   // 신청 완료 1건당 Purchase를 한 번만 전송한다.
   // 완료 URL 직접 접속과 새로고침은 전환으로 집계하지 않는다.
   if (applicationId && typeof window.aiLeadersTrackMeta === 'function') {
     var sentKey = 'aiLeadersPurchaseSent:' + applicationId;
-    var alreadySent = false;
-    try { alreadySent = sessionStorage.getItem(sentKey) === '1'; } catch (error) {}
+    var alreadySent = storageFlag(sessionStore, sentKey) || storageFlag(localStore, sentKey);
     if (!alreadySent) {
-      try { sessionStorage.setItem(sentKey, '1'); } catch (error) {}
+      markStorageFlag(sessionStore, sentKey);
+      markStorageFlag(localStore, sentKey);
       window.aiLeadersTrackMeta('Purchase', {
         content_name: courseTitle || '강연 신청',
         content_category: courseType === 'paid' ? 'paid_lecture' : 'free_lecture',
@@ -178,7 +238,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         num_items: 1,
         value: 0,
         currency: 'KRW'
-      });
+      }, { eventID: applicationId });
     }
   }
 })();
