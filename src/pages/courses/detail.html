@@ -1168,15 +1168,26 @@ function populatePage(c) {
     <div class="ch-info-row"><span class="ch-info-label">시간</span><span class="ch-info-value">${detailEscape(c.time || '-')}${mealNote}</span></div>
     <div class="ch-info-row"><span class="ch-info-label">강사명</span><span class="ch-info-value">${instructorName}</span></div>`;
 
-  // 모집 마감 처리
-  if (isClosed) {
-    [document.getElementById('applyBtn'), document.getElementById('thumbApplyBtn'), document.getElementById('mobileThumbApplyBtn'), document.getElementById('stickyApplyBtn')].forEach(function(applyBtn){
-      if (!applyBtn) return;
+  // 모집 마감 처리 (회차를 바꿀 때마다 상태를 다시 계산해서 반영)
+  var applyButtonDefaults = {
+    applyBtn: '신청하기',
+    thumbApplyBtn: '신청하기',
+    mobileThumbApplyBtn: '신청하기',
+    stickyApplyBtn: '강연 신청'
+  };
+  Object.keys(applyButtonDefaults).forEach(function(id){
+    var applyBtn = document.getElementById(id);
+    if (!applyBtn) return;
+    if (isClosed) {
       applyBtn.textContent = '모집 마감';
       applyBtn.style.cssText = 'background:#9ca3af;border-color:#9ca3af;cursor:default;';
       applyBtn.onclick = showClosedPopup;
-    });
-  }
+    } else {
+      applyBtn.textContent = applyButtonDefaults[id];
+      applyBtn.style.cssText = '';
+      applyBtn.onclick = openModal;
+    }
+  });
 }
 
 // 모집 마감 팝업
