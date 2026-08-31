@@ -23,15 +23,7 @@ const pageRoutes = [
   ['src/pages/courses/detail.html', ['course-detail/index.html', 'course/index.html']],
   ['src/pages/forms/corporate.html', ['corporate/index.html']],
   ['src/pages/forms/instructor-apply.html', ['instructor-apply/index.html']],
-  ['src/pages/forms/application-complete.html', ['application-complete/index.html']],
-  ['src/pages/admin/login.html', ['admin-login/index.html']],
-  ['src/pages/admin/dashboard.html', ['admin-dashboard/index.html']],
-  ['src/pages/admin/courses.html', ['admin-courses/index.html']],
-  ['src/pages/admin/site-content.html', ['admin-site-content/index.html']],
-  ['src/pages/admin/applications.html', ['admin-applications/index.html']],
-  ['src/pages/admin/corporate-inquiries.html', ['admin-corporate-inquiries/index.html']],
-  ['src/pages/admin/instructor-applications.html', ['admin-instructor-applications/index.html']],
-  ['src/pages/admin/update-log.html', ['admin-update-log/index.html']]
+  ['src/pages/forms/application-complete.html', ['application-complete/index.html']]
 ];
 
 const directoryCopies = [

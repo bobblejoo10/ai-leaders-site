@@ -1,7 +1,6 @@
 (function (global) {
   'use strict';
 
-  var ADMIN_ACCESS_PATH = '/admin-dashboard/';
   var ATTRIBUTION_STORAGE_KEY = 'aiLeadersAttributionContext';
   var COMPLETION_STORAGE_KEY = 'aiLeadersLastApplication';
   var ATTRIBUTION_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
@@ -187,7 +186,6 @@
     + '        <p class="ft-biz">AI리더스협회<span class="bar">|</span>주소 : 영등포구 선유로70 우리벤처타운2<span class="bar">|</span>대표 : 김영주<span class="bar">|</span>사업자등록번호 : 352-88-01460<span class="bar">|</span>TEL : 070-8806-6892</p>'
     + '        <p class="ft-copy">COPYRIGHT ⓒ AI리더스협회 ALL RIGHTS RESERVED</p>'
     + '        <p class="ft-links">'
-    + '          <a href="/admin-dashboard/" data-admin-access>관리자 페이지</a>'
     + "          <a href=\"#privacyModal\" onclick=\"if(window.openLegal){openLegal('privacyModal');} return false;\">개인정보처리방침</a>"
     + "          <a href=\"#termsModal\" onclick=\"if(window.openLegal){openLegal('termsModal');} return false;\">이용약관</a>"
     + '        </p>'
@@ -195,23 +193,6 @@
     + '    </div>'
     + '  </div>'
     + '</footer>';
-
-  function openAdminAccess(event) {
-    if (event) event.preventDefault();
-    global.location.assign(ADMIN_ACCESS_PATH);
-  }
-
-  function bindAdminAccessLinks() {
-    Array.prototype.forEach.call(document.querySelectorAll('[data-admin-access]'), function (link) {
-      if (link.getAttribute('data-admin-access-bound') === 'true') return;
-      link.setAttribute('data-admin-access-bound', 'true');
-      link.addEventListener('click', openAdminAccess);
-    });
-  }
-
-  function ensureAdminAccessUi() {
-    bindAdminAccessLinks();
-  }
 
   function currentRoute() {
     var path = global.location.pathname.toLowerCase().replace(/\/+$/, '');
@@ -264,7 +245,6 @@
     captureAttributionContext();
     renderNav();
     renderFooter();
-    ensureAdminAccessUi();
   }
 
   global.AiLeadersLayout = {
