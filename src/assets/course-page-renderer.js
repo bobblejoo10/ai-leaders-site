@@ -140,6 +140,32 @@
     return course.type === 'paid' ? paidFilterKey(course) : freeFilterKey(course);
   }
 
+  /**
+   * 지역 검색에 걸리는 이름들.
+   * 대표 지역 + 전체 해시태그 + 모든 회차의 지역을 모읍니다. 같은 값은 한 번만.
+   */
+  function locationHaystack(course) {
+    var sessions = course && course.sessions;
+    if (typeof sessions === 'string') {
+      try { sessions = JSON.parse(sessions); } catch (error) { sessions = null; }
+    }
+    var parts = [course && course.location, course && course.locationTag];
+    if (Array.isArray(sessions)) {
+      sessions.forEach(function (session) {
+        parts.push(session && session.location);
+        parts.push(session && session.region);
+      });
+    }
+    var seen = {};
+    return parts.map(function (value) { return String(value || '').trim(); })
+      .filter(function (value) {
+        if (!value || seen[value]) return false;
+        seen[value] = true;
+        return true;
+      })
+      .join(' ');
+  }
+
   function regionKey(course) {
     var s = store();
     if (s && typeof s.inferRegion === 'function') return s.inferRegion(course);
@@ -329,7 +355,7 @@
     return allCoursesForState().filter(function (course) {
       var matchesFilter = currentFilter === 'all' || filterKey(course) === currentFilter;
       var matchesRegion = currentRegion === 'all' || regionKey(course) === currentRegion;
-      var matchesLocation = !locationQuery || String(course.location || '').indexOf(locationQuery) !== -1;
+      var matchesLocation = !locationQuery || locationHaystack(course).indexOf(locationQuery) !== -1;
       // 날짜(eventDate) 없는 강연은 courseMonthKey가 ''이라 특정 월 선택 시 제외되고 '전체'에서만 노출됨
       var matchesMonth = !currentMonth || courseMonthKey(course) === currentMonth;
       return matchesFilter && matchesRegion && matchesLocation && matchesMonth;
