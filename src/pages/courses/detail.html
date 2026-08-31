@@ -641,10 +641,81 @@ function normalizedApplicationNotice(course) {
   };
 }
 
+// ── 유의사항 치환어 ──────────────────────────────────
+//
+// 관리자에서 {시작시간} 처럼 적어 둔 것을 지금 고른 회차의 값으로 바꿉니다.
+// 회차를 바꾸면 이 함수가 다시 돌아 문구도 함께 바뀝니다.
+// 형식은 {시작시간:한글} 처럼 붙습니다. 관리자 화면의 치환어 단추와 짝을 맞춘 것입니다.
+
+const NOTICE_TOKEN_PATTERN = /\{(시작시간|종료시간|강연시간|날짜|지역|장소|강사)(?::([^}]*))?\}/g;
+
+function noticeTimeParts(course) {
+  const found = String((course && (course.eventTime || course.time)) || '').match(/\d{1,2}:\d{2}/g) || [];
+  return { start: found[0] || '', end: found[1] || '' };
+}
+
+function noticeTimeText(value, format) {
+  const parts = String(value || '').split(':');
+  if (parts.length !== 2) return String(value || '');
+  const hour = Number(parts[0]);
+  const minute = parts[1];
+  if (format === '한글') return hour + '시 ' + minute + '분';
+  if (format === '오전오후') {
+    const label = hour < 12 ? '오전' : '오후';
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    return label + ' ' + hour12 + '시' + (Number(minute) ? ' ' + minute + '분' : '');
+  }
+  return parts[0] + ':' + minute;
+}
+
+function noticeDateText(eventDate, format) {
+  const found = String(eventDate || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!found) return '';
+  const year = Number(found[1]);
+  const month = Number(found[2]);
+  const day = Number(found[3]);
+  if (format === '숫자') return found[1] + '-' + found[2] + '-' + found[3];
+  if (format === '간단') return month + '/' + day;
+  const weekday = ['일', '월', '화', '수', '목', '금', '토'][new Date(year, month - 1, day).getDay()];
+  const tail = month + '월 ' + day + '일 (' + weekday + ')';
+  return format === '짧게' ? tail : year + '년 ' + tail;
+}
+
+function noticeTokenValue(course, name, format) {
+  const times = noticeTimeParts(course);
+  if (name === '시작시간') return noticeTimeText(times.start, format);
+  if (name === '종료시간') return noticeTimeText(times.end, format);
+  if (name === '강연시간') {
+    if (!times.start) return '';
+    if (!times.end) return noticeTimeText(times.start, format === '한글' ? '한글' : '');
+    return format === '한글'
+      ? noticeTimeText(times.start, '한글') + ' ~ ' + noticeTimeText(times.end, '한글')
+      : noticeTimeText(times.start, '') + ' - ' + noticeTimeText(times.end, '');
+  }
+  if (name === '날짜') return noticeDateText(course && course.eventDate, format);
+  if (name === '지역') return String((course && course.location) || '').trim();
+  if (name === '장소') return String((course && course.address) || '').trim();
+  if (name === '강사') return String((course && course.instructor) || '').trim();
+  return '';
+}
+
+function resolveNoticeTokens(value, course) {
+  return String(value || '').replace(NOTICE_TOKEN_PATTERN, function (whole, name, format) {
+    return noticeTokenValue(course, name, format || '');
+  });
+}
+
 function renderApplicationNotice(course) {
   const noticeEl = document.querySelector('.ch-notice');
   if (!noticeEl) return;
-  const notice = normalizedApplicationNotice(course);
+  const raw = normalizedApplicationNotice(course);
+  const notice = {
+    title: resolveNoticeTokens(raw.title, course),
+    items: (raw.items || []).map(function (item) { return resolveNoticeTokens(item, course); }),
+    noteTitle: resolveNoticeTokens(raw.noteTitle, course),
+    notes: (raw.notes || []).map(function (item) { return resolveNoticeTokens(item, course); }),
+    footer: resolveNoticeTokens(raw.footer, course)
+  };
   noticeEl.innerHTML =
     '<p class="ch-notice-title">' + detailEscape(notice.title) + '</p>' +
     '<ul>' + notice.items.map(function (item) { return '<li>' + detailEscape(item) + '</li>'; }).join('') + '</ul>' +
