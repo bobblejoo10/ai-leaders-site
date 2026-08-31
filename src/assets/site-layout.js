@@ -257,8 +257,7 @@
     readCompletionPayload: readCompletionPayload,
     saveCompletionPayload: saveCompletionPayload,
     buildCompletionUrl: buildCompletionUrl,
-    markActiveNav: markActiveNav,
-    openAdminAccess: openAdminAccess
+    markActiveNav: markActiveNav
   };
 
   renderAll();
