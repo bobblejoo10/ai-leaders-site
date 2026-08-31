@@ -205,6 +205,7 @@
   function fromRow(row) {
     return normalizeCourse({
       id: row.id,
+      locationTag: row.location_tag,
       type: row.type,
       status: row.status,
       title: row.title,
@@ -288,7 +289,8 @@
       badges: normalized.badges,
       summary: normalized.summary || null,
       application_notice: applicationNotice,
-      sessions: normalized.sessions || []
+      sessions: normalized.sessions || [],
+      location_tag: normalized.locationTag || null
     };
   }
 
