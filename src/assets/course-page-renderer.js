@@ -5,6 +5,12 @@
     return global.CourseStore;
   }
 
+  // 저장소 이미지 주소를 우리 도메인 중계로 바꿉니다.
+  function resolveMedia(value) {
+    var media = global.AiLeadersPublicMedia;
+    return media && typeof media.resolve === 'function' ? media.resolve(value) : value;
+  }
+
   function typeLabel(type) {
     return type === 'paid' ? '유료' : '무료';
   }
@@ -243,7 +249,7 @@
     var status = statusText(course);
     var muted = /마감|완료|비공개/.test(status) ? ' style="color:#555;"' : '';
     var title = displayTitle(course);
-    var thumb = typeof s.courseThumbnail === 'function' ? s.courseThumbnail(course) : (course.thumbImg || '/images/logo-ink.png');
+    var thumb = resolveMedia(typeof s.courseThumbnail === 'function' ? s.courseThumbnail(course) : (course.thumbImg || '/images/logo-ink.png'));
     var loading = index < 6 ? 'eager' : 'lazy';
     var fallbackCode = global.AiLeadersUtils && global.AiLeadersUtils.stablePublicCode
       ? global.AiLeadersUtils.stablePublicCode(course.id)
