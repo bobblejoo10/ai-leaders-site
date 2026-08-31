@@ -473,6 +473,7 @@ body.course-detail-ready #courseLoading{display:none}
   </div>
 </footer>
 
+<script src="/assets/public-media-overrides.js?v=20260831-img-proxy-1"></script>
 <script src="/assets/supabase-store-common.js?v=20260729-storage-fix-1"></script>
 <script src="/assets/courses-store.js?v=20260729-cardfields-fix-1"></script>
 <script src="/assets/applications-store.js?v=20260729-event-date-1"></script>
@@ -1199,7 +1200,9 @@ function showClosedPopup() {
 
 // 강연 종류에 맞는 상세 이미지 매핑
 function detailImageFor(c) {
-  if (c.detailImg) return c.detailImg;
+  var media = window.AiLeadersPublicMedia;
+  var resolve = media && typeof media.resolve === 'function' ? media.resolve : function (v) { return v; };
+  if (c.detailImg) return resolve(c.detailImg);
   if (c.type === 'paid') return '/images/유료강연상세.png';
   if ((c.category || '').includes('클로드')) return '/images/클로드상세.jpg';
   return '/images/제미나이상세2.jpg';

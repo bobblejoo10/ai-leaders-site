@@ -5,6 +5,12 @@
     return global.CourseStore;
   }
 
+  // 저장소 이미지 주소를 우리 도메인 중계로 바꿉니다.
+  function resolveMedia(value) {
+    var media = global.AiLeadersPublicMedia;
+    return media && typeof media.resolve === 'function' ? media.resolve(value) : value;
+  }
+
   function toDate(value) {
     if (!value) return null;
     var match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -74,7 +80,7 @@
 
   function cardMarkup(course, index) {
     var s = store();
-    var thumb = typeof s.courseThumbnail === 'function' ? s.courseThumbnail(course) : (course.thumbImg || '/images/logo-ink.png');
+    var thumb = resolveMedia(typeof s.courseThumbnail === 'function' ? s.courseThumbnail(course) : (course.thumbImg || '/images/logo-ink.png'));
     var priority = index === 0
       ? ' loading="eager" fetchpriority="high"'
       : ' loading="eager"';
