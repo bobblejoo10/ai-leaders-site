@@ -84,34 +84,15 @@ function externalResources(html) {
   return resources;
 }
 
-const adminPages = [
-  'src/pages/admin/dashboard.html',
-  'src/pages/admin/courses.html',
-  'src/pages/admin/site-content.html',
-  'src/pages/admin/applications.html',
-  'src/pages/admin/corporate-inquiries.html',
-  'src/pages/admin/instructor-applications.html',
-  'src/pages/admin/update-log.html'
-];
-
-for (const path of adminPages) {
-  const page = await text(path);
-  expect(page.includes('/assets/admin-auth-bootstrap.js'), `${path}: missing pre-render auth gate`);
-  expect(page.includes('/assets/admin-auth.js'), `${path}: missing staff authorization script`);
-  expect(page.includes('@supabase/supabase-js@2.110.7'), `${path}: Supabase SDK version is not pinned`);
-  expect(page.includes('integrity="sha384-'), `${path}: Supabase SDK is missing SRI`);
-}
-
-const adminAuth = await text('src/assets/admin-auth.js');
-expect(adminAuth.includes('Boolean(allowedRoles'), 'unknown admin routes are allowed by default');
-expect(adminAuth.includes('[data-tab="option"], [data-section="option"]'), 'design staff can still see the restricted form-option editor');
+// 관리자 페이지 검사는 kedp-admin-console 저장소로 옮겼습니다.
+// 여기에는 홈페이지가 관리자 흔적을 남기지 않는지만 확인합니다.
 
 const siteLayout = await text('src/assets/site-layout.js');
 expect(!siteLayout.includes('ADMIN_ACCESS_PASSWORD'), 'site-layout.js still contains a shared admin password');
 expect(!siteLayout.includes('adminAccessPassword'), 'site-layout.js still contains the retired shared-password dialog');
-expect(siteLayout.includes("ADMIN_ACCESS_PATH = '/admin-dashboard/'"), 'site-layout.js does not route the admin link through the protected dashboard');
-expect(siteLayout.includes('data-admin-access>관리자 페이지</a>'), 'site-layout.js does not label the public admin link correctly');
 expect(!siteLayout.includes('/admin-login/?next=%2Fadmin-dashboard%2F'), 'site-layout.js still flashes the login page for an active admin session');
+expect(!siteLayout.includes('admin-dashboard'), 'site-layout.js still exposes the admin console address');
+expect(!siteLayout.includes('data-admin-access'), 'site-layout.js still renders the retired admin link');
 
 const commonStore = await text('src/assets/supabase-store-common.js');
 expect(commonStore.includes("Prefer: SENSITIVE_INSERT_TABLES[table] ? 'return=minimal'"), 'sensitive public inserts may return private records');
@@ -136,7 +117,6 @@ expect(migration.trim().startsWith('-- Secure staff access') && migration.trim()
 const headers = await text('src/static/_headers');
 expect(headers.includes('Content-Security-Policy:'), 'Cloudflare security headers are missing CSP');
 expect(headers.includes('X-Frame-Options: DENY'), 'Cloudflare headers do not prevent framing');
-expect(headers.includes('/admin-*'), 'admin cache and indexing rules are missing');
 const cspLine = headers.split(/\r?\n/).find((line) => line.includes('Content-Security-Policy:')) || '';
 expect(cspLine.length < 2000, 'Cloudflare CSP header exceeds the per-header rule limit');
 const cspDirectives = parseCspDirectives(cspLine);
@@ -175,5 +155,5 @@ if (failures.length) {
   for (const failure of failures) console.error(`[security-check] ${failure}`);
   process.exitCode = 1;
 } else {
-  console.log(`[security-check] PASS (${adminPages.length} protected admin pages)`);
+  console.log(`[security-check] PASS (public site boundaries)`);
 }
