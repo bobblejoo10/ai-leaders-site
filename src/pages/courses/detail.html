@@ -845,51 +845,115 @@ function renderSessionPicker(managed, baseCourse) {
   const sessions = allSessions.filter(function (session) { return session && session.status !== 'hidden'; });
   if (sessions.length < 2) return;
 
+  ensureSessionPickerStyle();
+
   const optionsHtml = sessions.map(function (session) {
     return '<option value="' + detailEscape(session.id) + '">' + detailEscape(sessionOptionLabel(session)) + '</option>';
   }).join('');
 
-  function buildPicker(id) {
+  // 이 회차가 마감됐는지. 두 가지를 봅니다.
+  //   1. 관리자에서 [마감] 으로 둔 회차
+  //   2. 날짜·시간이 이미 지난 회차
+  // 마감된 회차는 흐려지고 글자에 줄이 그어지며 누를 수 없습니다.
+  //
+  // 시험하느라 잠시 꺼야 할 때는 아래를 false 로 바꾸세요.
+  const SESSION_CLOSE_ENABLED = true;
+
+  function isSessionClosed(session) {
+    if (!SESSION_CLOSE_ENABLED) return false;
+    if (session.status === 'closed') return true;
+    return !isCourseOpenForApply(courseWithSession(baseCourse, session));
+  }
+
+  // 그 회차 기준의 입장 마감 문구 한 줄. 유의사항에 적힌 문구를 그대로 씁니다.
+  function entryLineFor(session) {
+    const merged = courseWithSession(baseCourse, session);
+    const items = (normalizedApplicationNotice(merged) || {}).items || [];
+    const found = items.filter(function (item) { return String(item).indexOf('입장 마감') >= 0; })[0];
+    return found ? resolveNoticeTokens(found, merged) : '';
+  }
+
+  function cardHtml(session, compact) {
+    const closed = isSessionClosed(session);
+    const place = session.location || session.region || '';
+    const dateKo = managedDateKo(session.eventDate) || session.eventDate || '';
+    const time = session.eventTime || '';
+    const entry = compact ? '' : entryLineFor(session);
+    const rows = compact
+      ? '<span class="ss-line">' + detailEscape([dateKo, time].filter(Boolean).join(' · ')) + '</span>'
+      : '<span class="ss-line">' + detailEscape(session.address || '') + '</span>'
+        + '<span class="ss-line">' + detailEscape([dateKo, time].filter(Boolean).join(' · ')) + '</span>'
+        + (entry ? '<span class="ss-entry">' + detailEscape(entry) + '</span>' : '');
+
+    return '<button type="button" class="ss-card' + (closed ? ' is-closed' : '') + (compact ? ' is-compact' : '') + '"'
+      + ' data-session-id="' + detailEscape(session.id) + '"'
+      + (closed ? ' disabled aria-disabled="true"' : '')
+      + '>'
+      + '<span class="ss-head"><span class="ss-place">' + detailEscape(place) + '</span>'
+      + (closed ? '<span class="ss-badge">마감</span>' : '') + '</span>'
+      + rows
+      + '</button>';
+  }
+
+  function buildPicker(id, compact) {
     const wrap = document.createElement('div');
     wrap.className = 'form-group ch-session-picker';
-    wrap.innerHTML = '<label class="form-label" for="' + id + '">지역 및 날짜 선택<span class="req">*</span></label>'
-      + '<select class="form-select" id="' + id + '">' + optionsHtml + '</select>';
+    wrap.innerHTML =
+      '<label class="form-label" for="' + id + '">지역 및 날짜 선택<span class="req">*</span></label>'
+      + '<select class="form-select ss-hidden-select" id="' + id + '">' + optionsHtml + '</select>'
+      + '<div class="ss-list' + (compact ? ' is-compact' : '') + '">'
+      + sessions.map(function (session) { return cardHtml(session, compact); }).join('')
+      + '</div>'
+      + '<div class="ss-chosen" hidden>'
+      + '<span class="ss-chosen-label"></span>'
+      + '<button type="button" class="ss-reset">다시 선택하기</button>'
+      + '</div>';
     return wrap;
   }
 
   const selects = [];
+  const wraps = [];
+
+  function place(wrap) {
+    wraps.push(wrap);
+    selects.push(wrap.querySelector('select'));
+  }
 
   // 1) 강연 제목 바로 아래 (PC 전용 — 모바일에서는 숨김, 모바일은 3번 위치 그대로 사용)
   const titleEl = document.getElementById('heroTitle');
   if (titleEl && titleEl.parentNode) {
-    const titleWrap = buildPicker('sessionSelectTitle');
+    const titleWrap = buildPicker('sessionSelectTitle', false);
     titleWrap.classList.add('ch-session-picker-title');
     titleEl.parentNode.insertBefore(titleWrap, titleEl.nextSibling);
-    selects.push(titleWrap.querySelector('select'));
+    place(titleWrap);
   }
 
-  // 2) 우측 신청 카드(강연정보 위, PC)
+  // 2) 우측 신청 카드(강연정보 위, PC) — 자리가 좁아 간략하게
   const infoEl = document.getElementById('applyInfo');
   if (infoEl && infoEl.parentNode) {
-    const cardWrap = buildPicker('sessionSelectCard');
+    const cardWrap = buildPicker('sessionSelectCard', true);
     cardWrap.style.marginTop = '16px';
     infoEl.parentNode.insertBefore(cardWrap, infoEl);
-    selects.push(cardWrap.querySelector('select'));
+    place(cardWrap);
   }
 
   // 3) 모바일 배너 이미지 아래 (강연정보 표 위)
   const statbarEl = document.getElementById('heroStatbar');
   if (statbarEl && statbarEl.parentNode) {
-    const mobileWrap = buildPicker('sessionSelectMobile');
+    const mobileWrap = buildPicker('sessionSelectMobile', false);
     mobileWrap.classList.add('ch-session-picker-mobile');
     statbarEl.parentNode.insertBefore(mobileWrap, statbarEl);
-    selects.push(mobileWrap.querySelector('select'));
+    place(mobileWrap);
   }
 
-  // 4) 신청 모달 안, 제출 버튼 위
+  // 4) 신청 모달 안, 제출 버튼 위 — 여기는 드롭다운 그대로 둡니다.
   const modalPickerEl = document.getElementById('modalSessionPicker');
   if (modalPickerEl) {
-    const modalWrap = buildPicker('sessionSelectModal');
+    const modalWrap = document.createElement('div');
+    modalWrap.className = 'form-group ch-session-picker';
+    modalWrap.innerHTML =
+      '<label class="form-label" for="sessionSelectModal">지역 및 날짜 선택<span class="req">*</span></label>'
+      + '<select class="form-select" id="sessionSelectModal">' + optionsHtml + '</select>';
     modalPickerEl.innerHTML = '';
     modalPickerEl.appendChild(modalWrap);
     selects.push(modalWrap.querySelector('select'));
@@ -901,19 +965,124 @@ function renderSessionPicker(managed, baseCourse) {
     return session.eventDate === managed.eventDate && session.eventTime === managed.eventTime;
   }) || sessions[0];
 
+  // 고르기 전에는 강연 정보와 유의사항을 감춥니다.
+  // 고른 적 없는 날짜를 보고 신청하는 일을 막기 위해서입니다.
+  function detailAreas() {
+    return [
+      document.getElementById('heroStatbar'),
+      document.getElementById('applyInfo'),
+      document.querySelector('.ch-notice')
+    ].filter(Boolean);
+  }
+
+  function showDetails(show) {
+    detailAreas().forEach(function (element) { element.classList.toggle('ss-away', !show); });
+    const applyBtn = document.getElementById('applyBtn');
+    if (applyBtn) {
+      applyBtn.disabled = !show;
+      applyBtn.classList.toggle('is-waiting', !show);
+      if (!show) {
+        if (!applyBtn.dataset.originalText) applyBtn.dataset.originalText = applyBtn.textContent;
+        applyBtn.textContent = '지역·날짜를 먼저 골라주세요';
+      } else if (applyBtn.dataset.originalText) {
+        applyBtn.textContent = applyBtn.dataset.originalText;
+      }
+    }
+  }
+
+  function toListView() {
+    wraps.forEach(function (wrap) {
+      wrap.querySelector('.ss-list').hidden = false;
+      wrap.querySelector('.ss-chosen').hidden = true;
+      wrap.querySelector('.form-label').hidden = false;
+    });
+    showDetails(false);
+  }
+
+  function toChosenView(session) {
+    const label = sessionOptionLabel(session);
+    wraps.forEach(function (wrap) {
+      wrap.querySelector('.ss-list').hidden = true;
+      wrap.querySelector('.form-label').hidden = true;
+      const chosen = wrap.querySelector('.ss-chosen');
+      chosen.hidden = false;
+      chosen.querySelector('.ss-chosen-label').textContent = label;
+      wrap.querySelectorAll('.ss-card').forEach(function (card) {
+        card.classList.toggle('is-active', card.getAttribute('data-session-id') === session.id);
+      });
+    });
+    showDetails(true);
+  }
+
   function applySelection(sessionId) {
     const chosen = sessions.find(function (session) { return session.id === sessionId; }) || sessions[0];
     selects.forEach(function (select) { select.value = chosen.id; });
     const updated = courseWithSession(baseCourse, chosen);
     window.currentCourseForApplication = updated;
     populatePage(updated);
+    toChosenView(chosen);
   }
 
   selects.forEach(function (select) {
     select.value = defaultSession.id;
     select.addEventListener('change', function () { applySelection(select.value); });
   });
-  applySelection(defaultSession.id);
+
+  wraps.forEach(function (wrap) {
+    wrap.querySelector('.ss-list').addEventListener('click', function (event) {
+      const card = event.target.closest('.ss-card');
+      if (!card || card.disabled) return;
+      applySelection(card.getAttribute('data-session-id'));
+    });
+    wrap.querySelector('.ss-reset').addEventListener('click', toListView);
+  });
+
+  // 화면을 한 번 그려 둔 뒤 고르기 전 상태로 돌립니다.
+  const updated = courseWithSession(baseCourse, defaultSession);
+  window.currentCourseForApplication = updated;
+  populatePage(updated);
+  toListView();
+}
+
+function ensureSessionPickerStyle() {
+  if (document.getElementById('ss-style')) return;
+  const style = document.createElement('style');
+  style.id = 'ss-style';
+  style.textContent = [
+    '.ss-hidden-select{display:none}',
+    // hidden 을 붙인 곳은 확실히 감춥니다. display 를 지정한 스타일이 이기지 못하게요.
+    '.ss-list[hidden],.ss-chosen[hidden]{display:none !important}',
+    '.ch-session-picker .form-label[hidden]{display:none !important}',
+    '.ss-away{display:none !important}',
+    '.ss-list{display:grid;gap:10px;margin-top:8px}',
+    '.ss-list.is-compact{gap:7px}',
+    '.ss-card{display:grid;gap:4px;width:100%;text-align:left;padding:14px 16px;border:1px solid #d9e1ec;',
+    'border-radius:12px;background:#fff;cursor:pointer;font-family:inherit;transition:border-color .15s ease,background .15s ease}',
+    '.ss-card:hover{border-color:#0172fe;background:#f5f9ff}',
+    '.ss-card.is-active{border-color:#0172fe;background:#eef5ff}',
+    '.ss-card.is-compact{padding:10px 12px;gap:2px}',
+    '.ss-head{display:flex;align-items:center;gap:8px}',
+    '.ss-place{font-size:16px;font-weight:800;color:#101828}',
+    '.ss-card.is-compact .ss-place{font-size:14px}',
+    '.ss-line{font-size:13px;color:#4a5567;line-height:1.55}',
+    '.ss-card.is-compact .ss-line{font-size:12px}',
+    '.ss-entry{margin-top:4px;font-size:12px;color:#d92d20;line-height:1.5}',
+    '.ss-badge{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:999px;',
+    'background:#f2f4f7;color:#667085;font-size:11px;font-weight:800}',
+    // 마감된 회차 — 흐리게, 가운데 줄, 못 누름
+    '.ss-card.is-closed{cursor:not-allowed;opacity:.45;background:#f8fafc}',
+    '.ss-card.is-closed:hover{border-color:#d9e1ec;background:#f8fafc}',
+    '.ss-card.is-closed .ss-place,.ss-card.is-closed .ss-line{text-decoration:line-through}',
+    '.ss-card.is-closed .ss-entry{display:none}',
+    '.ss-chosen{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;',
+    'margin-top:8px;padding:12px 14px;border:1px solid #b8d9ff;border-radius:12px;background:#eef5ff}',
+    '.ss-chosen-label{font-size:14px;font-weight:800;color:#0b4fa6}',
+    '.ss-reset{border:1px solid #b8d9ff;background:#fff;border-radius:8px;padding:7px 12px;',
+    'font-size:12px;font-weight:800;color:#0172fe;cursor:pointer;font-family:inherit}',
+    '.ss-reset:hover{background:#f5f9ff}',
+    '.apply-btn.is-waiting{opacity:.6;cursor:not-allowed}'
+  ].join('');
+  document.head.appendChild(style);
 }
 
 function normalizeCourseCode(value) {
