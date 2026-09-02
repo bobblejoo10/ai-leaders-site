@@ -3868,24 +3868,6 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
 </div>
 
-<script>
-(function(){
-  function openLegal(id){
-    document.getElementById(id).classList.add('open');
-    document.body.style.overflow='hidden';
-  }
-  function closeLegal(id){
-    document.getElementById(id).classList.remove('open');
-    document.body.style.overflow='';
-  }
-  window.openLegal=openLegal;
-  window.closeLegal=closeLegal;
-  document.querySelectorAll('.legal-modal-bg').forEach(function(bg){
-    bg.addEventListener('click',function(e){ if(e.target===bg) closeLegal(bg.id); });
-  });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape') document.querySelectorAll('.legal-modal-bg.open').forEach(function(el){ closeLegal(el.id); }); });
-})();
-</script>
 <!-- ===== 팝업 끝 ===== -->
 <!-- ===== 리모컨 바 끝 ===== -->
 

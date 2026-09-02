@@ -239,8 +239,49 @@
     mount.outerHTML = FOOTER_HTML;
   }
 
+  // 약관 팝업 (개인정보처리방침 · 이용약관 · 개인정보 수집 동의)
+  // 페이지마다 인라인으로 11벌 있던 것을 여기로 옮겼습니다. 동작은 그대로입니다.
+  //  · 여는 것 : 꼬리와 신청 폼의 onclick="openLegal('privacyModal')"
+  //  · 닫는 것 : 닫기 단추 · 바깥 어두운 곳 누르기 · Esc
+  var legalWired = false;
+
+  function openLegal(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLegal(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function wireLegalModals() {
+    if (legalWired) return;
+    legalWired = true;
+    global.openLegal = openLegal;
+    global.closeLegal = closeLegal;
+    // 페이지마다 붙이지 않고 문서 한 곳에서 받습니다. 팝업이 나중에 생겨도 됩니다.
+    document.addEventListener('click', function (event) {
+      var target = event.target;
+      if (target && target.classList && target.classList.contains('legal-modal-bg')) {
+        closeLegal(target.id);
+      }
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape') return;
+      Array.prototype.forEach.call(document.querySelectorAll('.legal-modal-bg.open'), function (el) {
+        closeLegal(el.id);
+      });
+    });
+  }
+
   function renderAll() {
     ensureGoogleTagManager();
+    wireLegalModals();
     captureAttributionContext();
     renderNav();
     renderFooter();
@@ -249,6 +290,8 @@
   global.AiLeadersLayout = {
     renderNav: renderNav,
     renderFooter: renderFooter,
+    openLegal: openLegal,
+    closeLegal: closeLegal,
     ensureGoogleTagManager: ensureGoogleTagManager,
     ensureGoogleTag: ensureGoogleTag,
     renderAll: renderAll,

@@ -187,25 +187,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .aurora-content .btn.ghost::before { background: linear-gradient(135deg, rgba(255,255,255,.92) 0%, rgba(125,211,252,.48) 45%, rgba(255,255,255,.08) 100%); }
   .eyebrow{ font-size:18px; font-weight:700; letter-spacing:-.01em; text-transform:none; color:var(--brand); }
 </style>
-<style>
-  .legal-modal-bg{position:fixed;inset:0;z-index:9999;background:rgba(12,24,40,.55);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s ease;}
-  .legal-modal-bg.open{opacity:1;pointer-events:auto;}
-  .legal-modal{background:#fff;border-radius:16px;width:100%;max-width:680px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(12,24,40,.18);transform:translateY(12px);transition:transform .2s ease;}
-  .legal-modal-bg.open .legal-modal{transform:translateY(0);}
-  .legal-modal-head{display:flex;align-items:center;justify-content:space-between;padding:24px 28px 20px;border-bottom:1px solid var(--line);}
-  .legal-modal-head h2{font-size:18px;font-weight:700;color:var(--ink);}
-  .legal-modal-close{width:36px;height:36px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--muted);transition:background .15s;}
-  .legal-modal-close:hover{background:var(--paper);color:var(--ink);}
-  .legal-modal-body{overflow-y:auto;padding:24px 28px 32px;font-size:14px;line-height:1.85;color:var(--muted);}
-  .legal-modal-body h3{font-size:15px;font-weight:700;color:var(--ink);margin:24px 0 8px;}
-  .legal-modal-body h3:first-child{margin-top:0;}
-  .legal-modal-body p{margin-bottom:10px;}
-  .legal-modal-body ul{padding-left:18px;margin-bottom:10px;}
-  .legal-modal-body li{margin-bottom:4px;}
-  .legal-modal-body table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:13px;}
-  .legal-modal-body th,.legal-modal-body td{border:1px solid var(--line);padding:8px 10px;text-align:left;}
-  .legal-modal-body th{background:var(--paper);font-weight:600;color:var(--ink);}
-</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -1029,24 +1010,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<script>
-(function(){
-  function openLegal(id){
-    document.getElementById(id).classList.add('open');
-    document.body.style.overflow='hidden';
-  }
-  function closeLegal(id){
-    document.getElementById(id).classList.remove('open');
-    document.body.style.overflow='';
-  }
-  window.openLegal=openLegal;
-  window.closeLegal=closeLegal;
-  document.querySelectorAll('.legal-modal-bg').forEach(function(bg){
-    bg.addEventListener('click',function(e){ if(e.target===bg) closeLegal(bg.id); });
-  });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape') document.querySelectorAll('.legal-modal-bg.open').forEach(function(el){ closeLegal(el.id); }); });
-})();
-</script>
 <!-- ===== 팝업 끝 ===== -->
 <!-- ===== 리모컨 바 끝 ===== -->
 
