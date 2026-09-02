@@ -62,6 +62,17 @@
     item.mobileImage = normalizeAssetUrl(item.mobileImage, 'images');
     item.videoUrl = text(item.videoUrl);
     item.overlayColor = text(item.overlayColor) || '#021642';
+    // 배경 밝기. light 면 대제목·소제목·단추·메뉴바가 진한 색으로 바뀝니다.
+    item.backgroundTone = text(item.backgroundTone) === 'light' ? 'light' : 'dark';
+    // 그라데이션 막을 씌울지. 끄면 사진이 그대로 보입니다.
+    item.overlayEnabled = toBoolean(item.overlayEnabled, true);
+    // 직접 지정한 색. 비어 있으면 배경 밝기(backgroundTone) 기본값을 씁니다.
+    item.titleColor = text(item.titleColor);
+    item.subtitleColor = text(item.subtitleColor);
+    item.primaryTextColor = text(item.primaryTextColor);
+    item.primaryBgColor = text(item.primaryBgColor);
+    item.secondaryTextColor = text(item.secondaryTextColor);
+    item.secondaryBgColor = text(item.secondaryBgColor);
     item.primaryLabel = text(item.primaryLabel);
     item.primaryUrl = text(item.primaryUrl);
     item.secondaryLabel = text(item.secondaryLabel);
@@ -121,6 +132,14 @@
       mobileImage: row.mobile_image,
       videoUrl: row.video_url,
       overlayColor: row.overlay_color,
+      backgroundTone: row.background_tone,
+      overlayEnabled: row.overlay_enabled,
+      titleColor: row.title_color,
+      subtitleColor: row.subtitle_color,
+      primaryTextColor: row.primary_text_color,
+      primaryBgColor: row.primary_bg_color,
+      secondaryTextColor: row.secondary_text_color,
+      secondaryBgColor: row.secondary_bg_color,
       primaryLabel: row.primary_label,
       primaryUrl: row.primary_url,
       secondaryLabel: row.secondary_label,
@@ -142,6 +161,14 @@
       mobile_image: item.mobileImage || null,
       video_url: item.videoUrl || null,
       overlay_color: item.overlayColor || '#021642',
+      background_tone: item.backgroundTone === 'light' ? 'light' : 'dark',
+      overlay_enabled: item.overlayEnabled !== false,
+      title_color: item.titleColor || null,
+      subtitle_color: item.subtitleColor || null,
+      primary_text_color: item.primaryTextColor || null,
+      primary_bg_color: item.primaryBgColor || null,
+      secondary_text_color: item.secondaryTextColor || null,
+      secondary_bg_color: item.secondaryBgColor || null,
       primary_label: item.primaryLabel || null,
       primary_url: item.primaryUrl || null,
       secondary_label: item.secondaryLabel || null,

@@ -215,7 +215,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .slide.s3{ background:radial-gradient(100% 100% at 20% 100%, #2f86ff, #014ec0 55%); }
   .slide.s4{ background:linear-gradient(180deg,#0a78ff,#0149b8); }
   .hero-scrim{ position:absolute; inset:0;
-    background:linear-gradient(180deg, rgba(2,22,66,.34) 0%, rgba(2,22,66,.14) 40%, rgba(1,18,58,.66) 100%); z-index:1; }
+    background:linear-gradient(180deg, rgba(2,22,66,.34) 0%, rgba(2,22,66,.14) 40%, rgba(1,18,58,.66) 100%); z-index:1;
+    transition:opacity .3s ease; }
 
   .hero-inner{ position:relative; z-index:2; height:100%; display:flex; flex-direction:column;
     justify-content:center; }
@@ -253,6 +254,45 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     display:flex; flex-direction:column; align-items:center; gap:6px; font-size:12px; color:rgba(255,255,255,.6); }
   .scrollcue .bar{ width:1px; height:30px; background:rgba(255,255,255,.5); animation:cue 1.8s ease-in-out infinite; transform-origin:top; }
   @keyframes cue{ 0%,100%{ transform:scaleY(.35); opacity:.4 } 50%{ transform:scaleY(1); opacity:1 } }
+
+  /* ---------- 밝은 배경 배너용 ---------- */
+  /* 관리자 [배경 밝기] 를 "밝음" 으로 두면 배너마다 .hero 와 .nav 에 .tone-light 가 붙습니다.
+     색만 바뀌고 글자 크기·자리·간격은 그대로입니다. 배너가 넘어갈 때 0.3초에 걸쳐 바뀝니다. */
+  .hero{ transition:color .3s ease; }
+  .hero h1, .hero .sub, .hero .counter, .hero .scrollcue{ transition:color .3s ease; }
+  .hero.tone-light{ color:#0C1828; }
+  .hero.tone-light .sub{ color:rgba(12,24,40,.72); }
+  .hero.tone-light .hero-search svg{ stroke:rgba(12,24,40,.55); }
+  .hero.tone-light .hero-search input{ color:#0C1828; }
+  .hero.tone-light .hero-search input::placeholder{ color:rgba(12,24,40,.45); }
+
+  /* 왼쪽 단추 = 파란 배경 + 흰 글자, 오른쪽 단추 = 흰 배경 + 진한 글자 */
+  .hero.tone-light .hero-cta .btn.inv{ background:#0172FE; color:#fff;
+    box-shadow:0 8px 20px rgba(1,114,254,.22), inset 0 1px 0 rgba(255,255,255,.25); }
+  .hero.tone-light .hero-cta .btn.inv::before{ background:linear-gradient(135deg,#38bdf8 0%,#0172fe 48%,#0649b8 100%); }
+  .hero.tone-light .hero-cta .btn.ghost{ background:#fff; color:#0C1828;
+    box-shadow:0 8px 20px rgba(12,24,40,.10), inset 0 1px 0 rgba(255,255,255,.9);
+    -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .hero.tone-light .hero-cta .btn.ghost::before{ background:linear-gradient(135deg,#e0f2fe 0%,#8bdcff 44%,#ffffff 100%); }
+
+  /* 캐러셀 화살표 · 점 · 번호 · 일시정지도 같이 진하게 */
+  .hero.tone-light .h-arrows button{ background:rgba(12,24,40,.06); border-color:rgba(12,24,40,.16); color:#0C1828; }
+  .hero.tone-light .h-arrows svg{ stroke:#0C1828; }
+  .hero.tone-light .dots button{ background:rgba(12,24,40,.28); }
+  .hero.tone-light .dots button.on{ background:#0C1828; }
+  .hero.tone-light .counter{ color:rgba(12,24,40,.70); }
+  .hero.tone-light .pause{ background:rgba(12,24,40,.06); border-color:rgba(12,24,40,.16); color:#0C1828; }
+  .hero.tone-light .pause svg{ fill:#0C1828; }
+  .hero.tone-light .scrollcue{ color:rgba(12,24,40,.55); }
+  .hero.tone-light .scrollcue .bar{ background:rgba(12,24,40,.45); }
+
+  /* 메뉴바 — 맨 위(스크롤 전)에서만 적용됩니다. 내리면 지금처럼 .scrolled 규칙이 맡습니다. */
+  .nav.tone-light:not(.scrolled){ color:var(--ink); }
+  .nav.tone-light .brand .logo-white{ display:none; }
+  .nav.tone-light .brand .logo-ink{ display:block; }
+
+  /* 관리자에서 단추 색을 직접 지정한 경우 — 물결 효과를 끕니다 (색 위를 덮어서요) */
+  .hero-cta .btn.btn-managed-color::before{ display:none; }
 
   .hero-carousel-shell{ position:relative; height:100vh; min-height:680px; overflow:hidden; background:#061020; color:#fff; }
   .hero-main-track{ height:100%; display:flex; transition:transform .72s cubic-bezier(.22,1,.36,1); will-change:transform; }

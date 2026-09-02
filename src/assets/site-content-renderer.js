@@ -141,6 +141,29 @@
     };
   }
 
+  // 관리자에서 직접 지정한 색. #rrggbb 여섯 자리만 통과시킵니다.
+  // 표에 적힌 값을 그대로 style 에 넣는 자리라, 형식을 먼저 확인합니다.
+  function safeColor(value) {
+    var v = String(value == null ? '' : value).trim();
+    return /^#[0-9a-fA-F]{6}$/.test(v) ? v : '';
+  }
+
+  // 색이 비어 있으면 style 을 비워 CSS(배경 밝기 기본값)로 되돌립니다.
+  function applyTextColor(el, value) {
+    if (!el) return;
+    el.style.color = safeColor(value);
+  }
+
+  function applyCtaColor(el, textColor, bgColor) {
+    if (!el) return;
+    var fg = safeColor(textColor);
+    var bg = safeColor(bgColor);
+    el.style.color = fg;
+    el.style.backgroundColor = bg;
+    // 지정한 색이 있으면 단추의 물결 효과를 끕니다. 안 끄면 색 위를 덮습니다.
+    el.classList.toggle('btn-managed-color', !!(fg || bg));
+  }
+
   function overlayGradient(hex) {
     var rgb = hexToRgb(hex) || { r: 2, g: 22, b: 66 };
     var base = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',';
@@ -354,9 +377,23 @@
 
     function applyBanner(index) {
       var item = banners[index] || banners[0];
-      if (scrim) scrim.style.background = overlayGradient(item.overlayColor);
+      // 배경 밝기 — 배너마다 .hero 와 .nav 의 글자·단추 색을 바꿉니다.
+      var isLight = item.backgroundTone === 'light';
+      hero.classList.toggle('tone-light', isLight);
+      var navBar = document.getElementById('nav') || document.querySelector('.nav');
+      if (navBar) navBar.classList.toggle('tone-light', isLight);
+      // 그라데이션 막 — 끄면 사진이 그대로 보입니다.
+      if (scrim) {
+        scrim.style.background = overlayGradient(item.overlayColor);
+        scrim.style.opacity = item.overlayEnabled === false ? '0' : '1';
+      }
       if (title && item.title) title.textContent = item.title;
       if (subtitle && item.subtitle) subtitle.textContent = item.subtitle;
+      // 직접 지정한 색이 있으면 그 색으로, 비어 있으면 배경 밝기 기본값 그대로.
+      applyTextColor(title, item.titleColor);
+      applyTextColor(subtitle, item.subtitleColor);
+      applyCtaColor(links[0], item.primaryTextColor, item.primaryBgColor);
+      applyCtaColor(links[1], item.secondaryTextColor, item.secondaryBgColor);
 
       if (links[0] && item.primaryLabel) links[0].textContent = item.primaryLabel;
       if (links[0]) links[0].setAttribute('href', normalizeManagedLink(item.primaryUrl, primaryUrlFallback));
