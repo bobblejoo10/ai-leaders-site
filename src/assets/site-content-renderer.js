@@ -409,6 +409,9 @@
       if (links[0]) links[0].setAttribute('href', normalizeManagedLink(item.primaryUrl, primaryUrlFallback));
       if (links[1] && item.secondaryLabel) links[1].textContent = item.secondaryLabel;
       if (links[1]) links[1].setAttribute('href', normalizeManagedLink(item.secondaryUrl, secondaryUrlFallback));
+      // 관리자에서 끈 단추는 숨깁니다. 기본은 켜짐이라 예전 배너는 그대로 보입니다.
+      if (links[0]) links[0].style.display = item.primaryEnabled === false ? 'none' : '';
+      if (links[1]) links[1].style.display = item.secondaryEnabled === false ? 'none' : '';
 
       if (shouldRenderManagedSlides) {
         slides.querySelectorAll('.slide').forEach(function (slide, slideIndex) {
