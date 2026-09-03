@@ -387,8 +387,16 @@
         scrim.style.background = overlayGradient(item.overlayColor);
         scrim.style.opacity = item.overlayEnabled === false ? '0' : '1';
       }
-      if (title && item.title) title.textContent = item.title;
-      if (subtitle && item.subtitle) subtitle.textContent = item.subtitle;
+      // 서식본(HTML)이 있으면 그대로, 없으면 평문. 관리자에서 굵게·색·줄바꿈을 넣은 경우입니다.
+      var rich = global.RichText;
+      if (title && (item.titleHtml || item.title)) {
+        if (rich && item.titleHtml) rich.set(title, item.titleHtml, item.title);
+        else if (item.title) title.textContent = item.title;
+      }
+      if (subtitle && (item.subtitleHtml || item.subtitle)) {
+        if (rich && item.subtitleHtml) rich.set(subtitle, item.subtitleHtml, item.subtitle);
+        else if (item.subtitle) subtitle.textContent = item.subtitle;
+      }
       // 직접 지정한 색이 있으면 그 색으로, 비어 있으면 배경 밝기 기본값 그대로.
       applyTextColor(title, item.titleColor);
       applyTextColor(subtitle, item.subtitleColor);
