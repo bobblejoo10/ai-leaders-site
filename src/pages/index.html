@@ -1583,6 +1583,21 @@ display:flex;flex-direction:column;align-items:center;justify-content:center;tex
 .hero h1,.hero .sub{max-width:none;text-align:center;}
 .hero-search{margin-left:auto;margin-right:auto;}
 .hero-cta{justify-content:center;}
+
+/* ===== 배너 문구·단추 자리 (관리자에서 고른 값) =====
+   관리자에서 고르지 않으면 아래 클래스가 안 붙어서 위의 중앙정렬이 그대로 유지됩니다. */
+.hero.hero-v-top .hero-inner{ justify-content:flex-start; }
+.hero.hero-v-middle .hero-inner{ justify-content:center; }
+.hero.hero-v-bottom .hero-inner{ justify-content:flex-end; }
+.hero.hero-h-left .hero-inner .container{ align-items:flex-start; }
+.hero.hero-h-center .hero-inner .container{ align-items:center; }
+.hero.hero-h-right .hero-inner .container{ align-items:flex-end; }
+.hero.hero-ta-left .hero-inner .container,.hero.hero-ta-left .hero h1,.hero.hero-ta-left .hero .sub{ text-align:left; }
+.hero.hero-ta-center .hero-inner .container,.hero.hero-ta-center .hero h1,.hero.hero-ta-center .hero .sub{ text-align:center; }
+.hero.hero-ta-right .hero-inner .container,.hero.hero-ta-right .hero h1,.hero.hero-ta-right .hero .sub{ text-align:right; }
+.hero.hero-cta-left .hero-cta{ justify-content:flex-start; }
+.hero.hero-cta-center .hero-cta{ justify-content:center; }
+.hero.hero-cta-right .hero-cta{ justify-content:flex-end; }
 .slide img{
 animation:heroZoom 18s ease-in-out infinite alternate;
 transform-origin:center center;
@@ -3917,6 +3932,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <script src="/assets/courses-store.js?v=20260831-sessions-1"></script>
 <script src="/assets/home-featured-renderer.js?v=20260729-instructor-sort-1"></script>
 <script src="/assets/rich-text.js?v=20260903-rich-1"></script>
+<script src="/assets/banner-layout.js?v=20260903-pos-1"></script>
 <script src="/assets/site-content-renderer.js?v=20260903-rich-1"></script>
 <script>
 CourseHomeFeaturedRenderer.render({ limit: 8 });

@@ -382,6 +382,8 @@
       hero.classList.toggle('tone-light', isLight);
       var navBar = document.getElementById('nav') || document.querySelector('.nav');
       if (navBar) navBar.classList.toggle('tone-light', isLight);
+      // 문구·단추 자리 — 관리자에서 고르지 않았으면 아무것도 바꾸지 않습니다.
+      if (global.BannerLayout) global.BannerLayout.apply(hero, item);
       // 그라데이션 막 — 끄면 사진이 그대로 보입니다.
       if (scrim) {
         scrim.style.background = overlayGradient(item.overlayColor);
