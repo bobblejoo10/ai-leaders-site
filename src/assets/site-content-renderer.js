@@ -171,8 +171,11 @@
   }
 
   function imageMarkup(src, alt, className) {
-    if (!src) return '';
-    return '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(alt || '') + '"' + (className ? ' class="' + escapeHtml(className) + '"' : '') + ' loading="lazy" decoding="async">';
+    // 강사 사진도 중계(/img/)를 타게 합니다. 안 그러면 방문자 소스에 Supabase 주소가 남고
+    // Cloudflare 캐시도 못 타서 전송량이 그대로 나갑니다.
+    var url = resolvePublicMediaUrl(src);
+    if (!url) return '';
+    return '<img src="' + escapeHtml(url) + '" alt="' + escapeHtml(alt || '') + '"' + (className ? ' class="' + escapeHtml(className) + '"' : '') + ' loading="lazy" decoding="async">';
   }
 
   function resolvePublicMediaUrl(value) {
@@ -245,7 +248,7 @@
   }
 
   function preloadHeroBanner(banner) {
-    if (banner.videoUrl) return preloadVideo(banner.videoUrl);
+    if (banner.videoUrl) return preloadVideo(resolvePublicMediaUrl(banner.videoUrl));
     return preloadImage(preferredHeroImage(banner));
   }
 
@@ -447,7 +450,7 @@
         var eager = index === 0;
         if (banner.videoUrl) {
           return '<div class="slide' + fallbackClass + active + '"><video class="hero-bg-img" muted playsinline loop preload="' + (eager ? 'auto' : 'none') + '" '
-            + (eager ? 'src' : 'data-src') + '="' + escapeHtml(banner.videoUrl) + '"></video></div>';
+            + (eager ? 'src' : 'data-src') + '="' + escapeHtml(resolvePublicMediaUrl(banner.videoUrl)) + '"></video></div>';
         }
         var desktop = resolvePublicMediaUrl(banner.desktopImage || banner.mobileImage);
         var mobile = resolvePublicMediaUrl(banner.mobileImage || banner.desktopImage);
