@@ -182,7 +182,7 @@
     + '        </div>'
     + '      </div>'
     + '      <div class="ft-right">'
-    + '        <p class="ft-biz">AI리더스협회<span class="bar">|</span>주소 : 영등포구 선유로70 우리벤처타운2<span class="bar">|</span>대표 : 김영주<span class="bar">|</span>사업자등록번호 : 352-88-01460<span class="bar">|</span>TEL : 070-8806-6892</p>'
+    + '        <p class="ft-biz">AI리더스협회<span class="bar">|</span>주소 : 서울특별시 영등포구 문래로 89, 701호<span class="bar">|</span>대표 : 이이슬<span class="bar">|</span>사업자등록번호 : 763-91-02086<span class="bar">|</span>TEL : 070-8806-6892</p>'
     + '        <p class="ft-copy">COPYRIGHT ⓒ AI리더스협회 ALL RIGHTS RESERVED</p>'
     + '        <p class="ft-links">'
     + "          <a href=\"#privacyModal\" onclick=\"if(window.openLegal){openLegal('privacyModal');} return false;\">개인정보처리방침</a>"
