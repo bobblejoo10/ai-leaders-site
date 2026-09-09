@@ -31,3 +31,6 @@ desktop.ini
 *.7z
 *.rar
 
+# Claude 가 내려준 파일을 두는 자리 (저장소와 무관한 산출물)
+/Claude outputs/
+
