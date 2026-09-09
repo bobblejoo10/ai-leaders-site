@@ -190,22 +190,41 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
   }
 
+  /* 카테고리는 무료·유료가 따로입니다. 이 페이지 구분에 맞는 것만 읽습니다.
+     예전에는 구분 없이 course_category 한 덩어리였습니다. 그 옛 값은 무료로
+     함께 읽습니다 — 관리자에서 자료를 옮기기 전에도 탭이 비지 않게요. */
+  function categoryGroupsForPage() {
+    var paid = pagedState && pagedState.type === 'paid';
+    return paid ? ['course_category_paid'] : ['course_category_free', 'course_category'];
+  }
+
   async function loadCategoryTabs() {
     var api = global.AiLeadersSupabase;
     if (!api || typeof api.selectRows !== 'function') { categoryTabs = []; return; }
-    try {
-      var rows = await api.selectRows('form_options', {
-        select: 'label,value,sort_order,is_active,option_group',
-        filters: { option_group: 'course_category', is_active: true },
-        order: 'sort_order.asc'
-      });
-      categoryTabs = (Array.isArray(rows) ? rows : []).map(function (row) {
-        var value = String((row && (row.value || row.label)) || '').trim();
-        return { value: value, label: String((row && (row.label || row.value)) || '').trim() || value };
-      }).filter(function (item) { return !!item.value; });
-    } catch (error) {
-      categoryTabs = [];
+    var groups = categoryGroupsForPage();
+    var collected = [];
+    for (var index = 0; index < groups.length; index += 1) {
+      try {
+        var rows = await api.selectRows('form_options', {
+          select: 'label,value,sort_order,is_active,option_group',
+          filters: { option_group: groups[index], is_active: true },
+          order: 'sort_order.asc'
+        });
+        (Array.isArray(rows) ? rows : []).forEach(function (row) {
+          var value = String((row && (row.value || row.label)) || '').trim();
+          if (!value) return;
+          collected.push({ value: value, label: String((row && (row.label || row.value)) || '').trim() || value });
+        });
+      } catch (error) {
+        // 한 그룹을 못 읽어도 나머지는 씁니다.
+      }
     }
+    var seen = {};
+    categoryTabs = collected.filter(function (item) {
+      if (seen[item.value]) return false;
+      seen[item.value] = true;
+      return true;
+    });
     renderCategoryTabs();
   }
 

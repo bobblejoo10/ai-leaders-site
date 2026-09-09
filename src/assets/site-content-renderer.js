@@ -77,7 +77,10 @@
         });
       },
       getInstructors: function (includeInactive) {
-        return active(state.instructors || [], includeInactive, sortInstructors);
+        // 이 화면들은 홈페이지 강사진 소개입니다.
+        // [홈페이지 강사진에 소개] 를 끈 강사는 뺍니다 — 강연 배정용으로만 두는 강사요.
+        return active(state.instructors || [], includeInactive, sortInstructors)
+          .filter(function (item) { return item.showOnSite !== false; });
       },
       getOptions: function (group, includeInactive) {
         return active(state.options || [], includeInactive).filter(function (item) {
