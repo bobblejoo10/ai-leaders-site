@@ -276,6 +276,33 @@
     }
   });
 
+  // 첨부 파일은 Cloudflare R2 로 올립니다 (창구 : functions/media/upload.js).
+  // 창구가 아직 없거나 R2 가 안 붙어 있으면 예전처럼 Supabase 로 올립니다.
+  async function saveToR2(file) {
+    var ext = String((String(file.name || '').match(/\.([A-Za-z0-9]+)$/) || [])[1] || '').toLowerCase();
+    var response;
+    try {
+      response = await global.fetch('/media/upload', {
+        method: 'POST',
+        headers: {
+          'X-Media-Ext': ext,
+          'Content-Type': file.type || 'application/octet-stream'
+        },
+        body: file
+      });
+    } catch (error) {
+      return null; // 창구에 닿지 못했습니다. 예전 방식으로 갑니다.
+    }
+    if (response.status === 404 || response.status === 503) return null;
+
+    var data = null;
+    try { data = JSON.parse(await response.text()); } catch (error) {}
+    if (!response.ok || !data || !data.ok) {
+      throw new Error((data && data.error) || '첨부 파일을 올리지 못했습니다.');
+    }
+    return data;
+  }
+
   async function saveFile(file) {
     if (!file) return null;
     if (file.size > MAX_ATTACHMENT_SIZE) {
@@ -284,6 +311,20 @@
     if (!ALLOWED_ATTACHMENT_EXTENSIONS.test(file.name || '')) {
       throw new Error('PDF, DOC, DOCX, PPT, PPTX 파일만 첨부할 수 있습니다.');
     }
+
+    var stored = await saveToR2(file);
+    if (stored) {
+      return {
+        fileId: stored.key,
+        fileName: file.name || 'portfolio-file',
+        fileType: file.type || 'application/octet-stream',
+        fileSize: file.size || 0,
+        fileStoredAt: new Date().toISOString(),
+        // 구글 시트의 [첨부 파일] 칸에 이 주소가 링크로 들어갑니다.
+        fileUrl: stored.url || ''
+      };
+    }
+
     var path = api.createStoragePath('applications', file.name || 'portfolio-file');
     await api.uploadFile(path, file, 'instructor-portfolio');
     return {
