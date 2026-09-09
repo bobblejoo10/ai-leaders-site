@@ -1582,7 +1582,10 @@ display:flex;flex-direction:column;align-items:center;justify-content:center;tex
 }
 .hero h1,.hero .sub{max-width:none;text-align:center;}
 .hero-search{margin-left:auto;margin-right:auto;}
-.hero-cta{justify-content:center;}
+.hero-cta{justify-content:center;align-self:stretch;}
+/* align-self 가 없으면 부모의 align-items:center 때문에 단추 줄이 내용 크기로 좁아지고,
+   그러면 관리자에서 고른 [단추 정렬] 이 밀 공간이 없어 아무 효과가 없습니다.
+   꽉 채워도 기본은 justify-content:center 라 지금 모습은 그대로입니다. */
 
 /* ===== 배너 문구·단추 자리 (관리자에서 고른 값) =====
    관리자에서 고르지 않으면 아래 클래스가 안 붙어서 위의 중앙정렬이 그대로 유지됩니다. */
