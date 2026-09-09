@@ -134,13 +134,16 @@
     }
   }
 
+  /* 관리자가 정한 색은 #rrggbb 또는 #rrggbbaa 입니다.
+     투명도를 담을 칸이 DB 에 없어서 뒤 두 자리에 얹어 옵니다. */
   function hexToRgb(hex) {
     var value = String(hex || '').trim().replace(/^#/, '');
-    if (!/^[0-9a-fA-F]{6}$/.test(value)) return null;
+    if (!/^([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value)) return null;
     return {
       r: parseInt(value.slice(0, 2), 16),
       g: parseInt(value.slice(2, 4), 16),
-      b: parseInt(value.slice(4, 6), 16)
+      b: parseInt(value.slice(4, 6), 16),
+      a: value.length === 8 ? parseInt(value.slice(6, 8), 16) / 255 : 1
     };
   }
 
@@ -148,7 +151,8 @@
   // 표에 적힌 값을 그대로 style 에 넣는 자리라, 형식을 먼저 확인합니다.
   function safeColor(value) {
     var v = String(value == null ? '' : value).trim();
-    return /^#[0-9a-fA-F]{6}$/.test(v) ? v : '';
+    // 8자리는 투명도가 얹힌 색입니다. CSS 가 그대로 알아듣습니다.
+    return /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(v) ? v : '';
   }
 
   // 색이 비어 있으면 style 을 비워 CSS(배경 밝기 기본값)로 되돌립니다.
@@ -168,9 +172,13 @@
   }
 
   function overlayGradient(hex) {
-    var rgb = hexToRgb(hex) || { r: 2, g: 22, b: 66 };
-    var base = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',';
-    return 'linear-gradient(180deg, ' + base + '.34) 0%, ' + base + '.14) 40%, ' + base + '.66) 100%)';
+    var rgb = hexToRgb(hex) || { r: 2, g: 22, b: 66, a: 1 };
+    var alpha = rgb.a == null ? 1 : rgb.a;
+    // 막의 세 단계 투명도에 관리자가 정한 투명도를 곱합니다.
+    var at = function (base) {
+      return 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + (base * alpha).toFixed(3) + ')';
+    };
+    return 'linear-gradient(180deg, ' + at(0.34) + ' 0%, ' + at(0.14) + ' 40%, ' + at(0.66) + ' 100%)';
   }
 
   function imageMarkup(src, alt, className) {
