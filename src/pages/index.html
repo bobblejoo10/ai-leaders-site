@@ -223,6 +223,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .hero-inner .container{ width:100%; }
   .hero h1{ font-size:clamp(32px,5.2vw,58px); font-weight:700; line-height:1.18; letter-spacing:-.02em;
     word-break:keep-all; max-width:18ch; animation:rise .8s .1s ease both; }
+  /* 제목 기본이 700 이라 <b> 기본값(700)과 같아서 굵게가 눈에 안 보였습니다. */
+  .hero h1 b, .hero h1 strong{ font-weight:900; }
   .hero .sub{ margin-top:18px; font-size:clamp(16px,2vw,20px); color:rgba(255,255,255,.82); max-width:40ch;
     word-break:keep-all; animation:rise .8s .25s ease both; }
   .hero-search{ margin-top:28px; max-width:520px; display:flex; align-items:center; gap:8px; padding:8px 8px 8px 18px;
@@ -3934,7 +3936,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <script src="/assets/public-media-overrides.js?v=20260908-r2-1"></script>
 <script src="/assets/courses-store.js?v=20260831-sessions-1"></script>
 <script src="/assets/home-featured-renderer.js?v=20260729-instructor-sort-1"></script>
-<script src="/assets/rich-text.js?v=20260903-rich-1"></script>
+<script src="/assets/rich-text.js?v=20260909-bold-1"></script>
 <script src="/assets/banner-layout.js?v=20260903-pos-1"></script>
 <script src="/assets/site-content-renderer.js?v=20260908-r2-1"></script>
 <script>
