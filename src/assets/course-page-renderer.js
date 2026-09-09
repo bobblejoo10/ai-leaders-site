@@ -122,22 +122,91 @@
     return time ? date + ' · ' + time : date;
   }
 
-  function freeFilterKey(course) {
-    var text = [course.category, course.title].join(' ');
-    if (/클로드|Claude/i.test(text)) return 'claude';
-    if (/종합|Canva|캔바|AI/i.test(text) && !/제미나이|Gemini/i.test(text)) return 'canva';
-    return 'chatgpt';
-  }
-
-  function paidFilterKey(course) {
-    var text = [course.category, course.title].join(' ');
-    if (/마케팅|콘텐츠|광고/i.test(text)) return 'marketing';
-    if (/자동화|n8n|노코드/i.test(text)) return 'auto';
-    return 'basic';
-  }
-
+  /* 분류 탭은 관리자 카테고리 값을 그대로 씁니다.
+     예전에는 카테고리와 제목을 뭉쳐서 정규식으로 짐작했습니다. 그래서
+     제목에 AI 만 들어가도 엉뚱한 탭으로 가고, 관리자에서 카테고리를 새로
+     만들어도 탭이 안 생겼습니다. 이제 카테고리를 고치면 탭이 따라옵니다. */
   function filterKey(course) {
-    return course.type === 'paid' ? paidFilterKey(course) : freeFilterKey(course);
+    return String((course && course.category) || '').trim();
+  }
+
+  /* 탭 단추는 [사이트 콘텐츠 > 강연 카테고리] 의 활성 목록으로 그립니다.
+     그리기 전에는 페이지에 적힌 단추가 없으니, 목록을 못 읽으면 [전체] 만 남습니다. */
+  var categoryTabs = null;
+
+  function tabContainer() {
+    return document.querySelector('[data-course-filters]') || document.querySelector('.filters');
+  }
+
+  /* 이 페이지(무료 또는 유료)에 실제로 강연이 있는 카테고리만 탭으로 세웁니다.
+     카테고리 목록에는 무료·유료 구분이 없어서, 그냥 다 세우면 무료 페이지에
+     유료 카테고리 탭이 뜨고 늘 0건이 됩니다.
+     목록에 없는 값을 쓰는 옛 강연이 있으면 그 값도 뒤에 붙입니다. 어느 탭에도
+     안 걸려 [전체] 에서만 보이는 강연이 생기지 않게요. */
+  function usedCategories() {
+    var used = {};
+    if (!store() || !pagedState) return used;
+    allCoursesForState().forEach(function (course) {
+      var key = filterKey(course);
+      if (key) used[key] = true;
+    });
+    return used;
+  }
+
+  function visibleCategoryTabs() {
+    var used = usedCategories();
+    var listed = {};
+    var tabs = [];
+    (categoryTabs || []).forEach(function (item) {
+      listed[item.value] = true;
+      if (used[item.value]) tabs.push(item);
+    });
+    Object.keys(used).sort().forEach(function (value) {
+      if (!listed[value]) tabs.push({ value: value, label: value });
+    });
+    return tabs;
+  }
+
+  function renderCategoryTabs() {
+    var box = tabContainer();
+    if (!box || !categoryTabs) return;
+    var current = (pagedState && pagedState.filter) || 'all';
+    var buttons = [{ value: 'all', label: '전체' }].concat(visibleCategoryTabs());
+    box.innerHTML = buttons.map(function (item) {
+      var active = item.value === current ? ' active' : '';
+      return '<button class="filter-btn' + active + '" type="button" data-course-filter="'
+        + escapeHtml(item.value) + '">' + escapeHtml(item.label) + '</button>';
+    }).join('');
+    Array.prototype.forEach.call(box.querySelectorAll('[data-course-filter]'), function (button) {
+      button.addEventListener('click', function () {
+        filterPaged(button.getAttribute('data-course-filter'), button);
+      });
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+
+  async function loadCategoryTabs() {
+    var api = global.AiLeadersSupabase;
+    if (!api || typeof api.selectRows !== 'function') { categoryTabs = []; return; }
+    try {
+      var rows = await api.selectRows('form_options', {
+        select: 'label,value,sort_order,is_active,option_group',
+        filters: { option_group: 'course_category', is_active: true },
+        order: 'sort_order.asc'
+      });
+      categoryTabs = (Array.isArray(rows) ? rows : []).map(function (row) {
+        var value = String((row && (row.value || row.label)) || '').trim();
+        return { value: value, label: String((row && (row.label || row.value)) || '').trim() || value };
+      }).filter(function (item) { return !!item.value; });
+    } catch (error) {
+      categoryTabs = [];
+    }
+    renderCategoryTabs();
   }
 
   /**
@@ -411,10 +480,7 @@
   function updateFilterButtons() {
     if (!pagedState) return;
     Array.prototype.forEach.call(document.querySelectorAll('.filter-btn'), function (button) {
-      var onclick = button.getAttribute('onclick') || '';
-      var active = onclick.indexOf("'" + pagedState.filter + "'") !== -1
-        || onclick.indexOf('"' + pagedState.filter + '"') !== -1;
-      button.classList.toggle('active', active);
+      button.classList.toggle('active', button.getAttribute('data-course-filter') === pagedState.filter);
     });
   }
 
@@ -461,6 +527,8 @@
 
   function renderCurrentPage(shouldScroll) {
     if (!store() || !pagedState) return;
+    // 강연 자료를 나중에 읽어도 탭이 따라오게 여기서 한 번 더 그립니다.
+    renderCategoryTabs();
     var grid = document.getElementById(pagedState.gridId);
     if (!grid) return;
     if (store().hasError && store().hasError()) {
@@ -528,6 +596,8 @@
     lastGridHtml = '';
     lastPagerHtml = '';
     bindResize();
+    renderCategoryTabs();
+    loadCategoryTabs();
     renderCurrentPage();
     if (typeof store().ready === 'function') {
       store().ready().catch(function () {

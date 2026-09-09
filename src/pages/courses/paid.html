@@ -307,11 +307,9 @@ body.course-list-ready #courseListLoading{display:none}
       <div class="sec-head reveal">
         <div><p class="eyebrow">Paid Lecture</p><h2 class="h">AI 유료 특강</h2></div>
       </div>
-      <div class="filters reveal" role="group" aria-label="강의 필터">
-        <button class="filter-btn active" onclick="filterCourse('all',this)">전체</button>
-        <button class="filter-btn" onclick="filterCourse('basic',this)">AI 기초</button>
-        <button class="filter-btn" onclick="filterCourse('marketing',this)">AI 마케팅</button>
-        <button class="filter-btn" onclick="filterCourse('auto',this)">업무 자동화</button>
+      <!-- 분류 탭은 [사이트 콘텐츠 > 강연 카테고리] 의 활성 목록으로 그립니다. -->
+      <div class="filters reveal" role="group" aria-label="강의 필터" data-course-filters>
+        <button class="filter-btn active" type="button" data-course-filter="all">전체</button>
       </div>
 
       <div class="course-grid" id="courseGrid">
@@ -418,7 +416,7 @@ body.course-list-ready #courseListLoading{display:none}
 <script src="/assets/public-media-overrides.js?v=20260908-r2-1"></script>
 <script src="/assets/supabase-store-common.js?v=20260902-site-scope-1"></script>
 <script src="/assets/courses-store.js?v=20260831-sessions-1"></script>
-<script src="/assets/course-page-renderer.js?v=20260831-sessions-1"></script>
+<script src="/assets/course-page-renderer.js?v=20260909-category-1"></script>
 <script src="/assets/applications-store.js?v=20260729-event-date-1"></script>
 <script>
 CoursePageRenderer.render({ type: 'paid', mobilePageSize: 8 });
