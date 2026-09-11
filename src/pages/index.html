@@ -231,7 +231,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     transition:opacity .3s ease; }
 
   .hero-inner{ position:relative; z-index:2; height:100%; display:flex; flex-direction:column;
-    justify-content:center; }
+    justify-content:center; align-items:center; padding:0 5.56cqw; box-sizing:border-box; }
   .hero-inner .container{ width:100%; }
   /* cqw = 히어로 칸 폭의 1%. 디어데이와 같은 값을 씁니다(관리자 한 곳에서 정한 것이
      두 사이트에 같게 나오도록). */
@@ -239,7 +239,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     word-break:keep-all; max-width:none; animation:rise .8s .1s ease both; }
   /* 제목 기본이 700 이라 <b> 기본값(700)과 같아서 굵게가 눈에 안 보였습니다. */
   .hero h1 b, .hero h1 strong{ font-weight:900; }
-  .hero .sub{ margin-top:1.4em; font-size:1.31cqw; color:rgba(255,255,255,.82); max-width:31ch;
+  .hero .sub{ margin-top:1.4em; font-size:1.31cqw; color:rgba(255,255,255,.82);
     word-break:keep-all; animation:rise .8s .25s ease both; }
   .hero-search{ margin-top:28px; max-width:520px; display:flex; align-items:center; gap:8px; padding:8px 8px 8px 18px;
     opacity:0; transform:translateY(16px); animation:rise .8s .4s ease forwards; }
@@ -1592,8 +1592,12 @@ h2:not(.is-in) .vertical-cut-title .vcr-inner,
 /* 문구 칸도 히어로 폭 기준입니다. .container 의 고정 폭과 24px 여백을 그대로 두면
    히어로 폭이 바뀔 때 문구 시작 위치가 제각각이 됩니다(디어데이에서 실측한 문제). */
 .hero-inner .container{
-display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
-max-width:none;padding:0 5.56cqw;
+display:flex;flex-direction:column;align-items:stretch;justify-content:center;text-align:center;
+/* 문구 칸은 글 길이에 맞춰 늘고 줄어듭니다(히어로 폭까지). 고정 폭으로 두면
+   줄을 바꾸지 않은 자리에서도 글이 접혔습니다. 디어데이 .hero-copy 와 같은 규칙입니다.
+   좌우 여백과 좌우 자리는 바깥(.hero-inner)이 맡습니다. margin 을 0 으로 두지 않으면
+   .container 기본값(margin:0 auto)이 [문구 자리] 를 늘 가운데로 되돌립니다. */
+width:max-content;max-width:100%;margin:0;padding:0;
 }
 .hero h1,.hero .sub{max-width:none;text-align:center;}
 .hero-search{margin-left:auto;margin-right:auto;}
@@ -1607,9 +1611,9 @@ max-width:none;padding:0 5.56cqw;
 .hero.hero-v-top .hero-inner{ justify-content:flex-start; }
 .hero.hero-v-middle .hero-inner{ justify-content:center; }
 .hero.hero-v-bottom .hero-inner{ justify-content:flex-end; }
-.hero.hero-h-left .hero-inner .container{ align-items:flex-start; }
-.hero.hero-h-center .hero-inner .container{ align-items:center; }
-.hero.hero-h-right .hero-inner .container{ align-items:flex-end; }
+.hero.hero-h-left .hero-inner{ align-items:flex-start; }
+.hero.hero-h-center .hero-inner{ align-items:center; }
+.hero.hero-h-right .hero-inner{ align-items:flex-end; }
 .hero.hero-ta-left .hero-inner .container,.hero.hero-ta-left .hero h1,.hero.hero-ta-left .hero .sub{ text-align:left; }
 .hero.hero-ta-center .hero-inner .container,.hero.hero-ta-center .hero h1,.hero.hero-ta-center .hero .sub{ text-align:center; }
 .hero.hero-ta-right .hero-inner .container,.hero.hero-ta-right .hero h1,.hero.hero-ta-right .hero .sub{ text-align:right; }
@@ -1624,9 +1628,9 @@ max-width:none;padding:0 5.56cqw;
   .hero.hero-m-v-top .hero-inner{ justify-content:flex-start; }
   .hero.hero-m-v-middle .hero-inner{ justify-content:center; }
   .hero.hero-m-v-bottom .hero-inner{ justify-content:flex-end; }
-  .hero.hero-m-h-left .hero-inner .container{ align-items:flex-start; }
-  .hero.hero-m-h-center .hero-inner .container{ align-items:center; }
-  .hero.hero-m-h-right .hero-inner .container{ align-items:flex-end; }
+  .hero.hero-m-h-left .hero-inner{ align-items:flex-start; }
+  .hero.hero-m-h-center .hero-inner{ align-items:center; }
+  .hero.hero-m-h-right .hero-inner{ align-items:flex-end; }
   .hero.hero-m-ta-left .hero-inner .container,.hero.hero-m-ta-left .hero h1,.hero.hero-m-ta-left .hero .sub{ text-align:left; }
   .hero.hero-m-ta-center .hero-inner .container,.hero.hero-m-ta-center .hero h1,.hero.hero-m-ta-center .hero .sub{ text-align:center; }
   .hero.hero-m-ta-right .hero-inner .container,.hero.hero-m-ta-right .hero h1,.hero.hero-m-ta-right .hero .sub{ text-align:right; }
@@ -3980,7 +3984,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <script src="/assets/public-media-overrides.js?v=20260908-r2-1"></script>
 <script src="/assets/courses-store.js?v=20260831-sessions-1"></script>
 <script src="/assets/home-featured-renderer.js?v=20260729-instructor-sort-1"></script>
-<script src="/assets/rich-text.js?v=20260909-bold-1"></script>
+<script src="/assets/rich-text.js?v=20260911-size-1"></script>
 <script src="/assets/banner-layout.js?v=20260903-pos-1"></script>
 <script src="/assets/banner-cta.js?v=20260911-cta-1"></script>
 <script src="/assets/site-content-renderer.js?v=20260909-alpha-1"></script>
