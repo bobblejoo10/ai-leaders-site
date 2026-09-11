@@ -1603,6 +1603,24 @@ display:flex;flex-direction:column;align-items:center;justify-content:center;tex
 .hero.hero-cta-left .hero-cta{ justify-content:flex-start; }
 .hero.hero-cta-center .hero-cta{ justify-content:center; }
 .hero.hero-cta-right .hero-cta{ justify-content:flex-end; }
+
+/* ===== 모바일 배너 문구·단추 자리 =====
+   관리자에서 모바일을 따로 고르면 이 클래스가 붙습니다. 모바일 구간에서만 듣습니다.
+   모바일을 안 고르면 PC 값이 그대로 들어와(banner-layout.js) 같은 자리가 됩니다. */
+@media (max-width:700px){
+  .hero.hero-m-v-top .hero-inner{ justify-content:flex-start; }
+  .hero.hero-m-v-middle .hero-inner{ justify-content:center; }
+  .hero.hero-m-v-bottom .hero-inner{ justify-content:flex-end; }
+  .hero.hero-m-h-left .hero-inner .container{ align-items:flex-start; }
+  .hero.hero-m-h-center .hero-inner .container{ align-items:center; }
+  .hero.hero-m-h-right .hero-inner .container{ align-items:flex-end; }
+  .hero.hero-m-ta-left .hero-inner .container,.hero.hero-m-ta-left .hero h1,.hero.hero-m-ta-left .hero .sub{ text-align:left; }
+  .hero.hero-m-ta-center .hero-inner .container,.hero.hero-m-ta-center .hero h1,.hero.hero-m-ta-center .hero .sub{ text-align:center; }
+  .hero.hero-m-ta-right .hero-inner .container,.hero.hero-m-ta-right .hero h1,.hero.hero-m-ta-right .hero .sub{ text-align:right; }
+  .hero.hero-m-cta-left .hero-cta{ justify-content:flex-start; }
+  .hero.hero-m-cta-center .hero-cta{ justify-content:center; }
+  .hero.hero-m-cta-right .hero-cta{ justify-content:flex-end; }
+}
 .slide img{
 animation:heroZoom 18s ease-in-out infinite alternate;
 transform-origin:center center;
