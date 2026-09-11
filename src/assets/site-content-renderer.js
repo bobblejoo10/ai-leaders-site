@@ -416,16 +416,19 @@
       // 직접 지정한 색이 있으면 그 색으로, 비어 있으면 배경 밝기 기본값 그대로.
       applyTextColor(title, item.titleColor);
       applyTextColor(subtitle, item.subtitleColor);
-      applyCtaColor(links[0], item.primaryTextColor, item.primaryBgColor);
-      applyCtaColor(links[1], item.secondaryTextColor, item.secondaryBgColor);
-
-      if (links[0] && item.primaryLabel) links[0].textContent = item.primaryLabel;
-      if (links[0]) links[0].setAttribute('href', normalizeManagedLink(item.primaryUrl, primaryUrlFallback));
-      if (links[1] && item.secondaryLabel) links[1].textContent = item.secondaryLabel;
-      if (links[1]) links[1].setAttribute('href', normalizeManagedLink(item.secondaryUrl, secondaryUrlFallback));
-      // 관리자에서 끈 단추는 숨깁니다. 기본은 켜짐이라 예전 배너는 그대로 보입니다.
-      if (links[0]) links[0].style.display = item.primaryEnabled === false ? 'none' : '';
-      if (links[1]) links[1].style.display = item.secondaryEnabled === false ? 'none' : '';
+      // 단추는 세 저장소가 함께 쓰는 banner-cta.js 가 맞춥니다.
+      // 예전에는 페이지에 이미 있는 두 번째 링크를 고쳐 쓰기만 해서, 단추가
+      // 하나뿐인 페이지에서는 관리자에서 2차를 켜도 나오지 않았습니다.
+      var ctaBox = hero.querySelector('.hero-cta') || (links[0] ? links[0].parentNode : null);
+      if (global.BannerCta && ctaBox) {
+        global.BannerCta.apply(ctaBox, item, {
+          resolveUrl: normalizeManagedLink,
+          applyColor: applyCtaColor,
+          fallbackPrimaryUrl: primaryUrlFallback,
+          fallbackSecondaryUrl: secondaryUrlFallback,
+          secondaryClass: 'btn ghost'
+        });
+      }
 
       if (shouldRenderManagedSlides) {
         slides.querySelectorAll('.slide').forEach(function (slide, slideIndex) {
