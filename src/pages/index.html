@@ -196,7 +196,19 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .hamb svg{ width:24px; height:24px; stroke:currentColor; }
 
   /* ---------- 1. 캐러셀 히어로 ---------- */
-  .hero{ position:relative; height:90vh; min-height:680px; background:linear-gradient(165deg,#0a4fd0,#0172fe 55%,#0a63ff); color:#fff; overflow:hidden; }
+  /* 히어로는 16:9 고정 칸입니다(모바일 3:2). 디어데이와 같은 규칙입니다.
+     올린 그림·영상 크기와 상관없이 늘 같은 비율이고, 그 칸에 맞춰 잘려 들어갑니다.
+     칸 전체가 스크롤 없이 보이도록 화면 안에 들어가는 크기로 잡습니다.
+     화면이 16:9 보다 가로로 길면 세로에 맞추고 좌우에 여백이 생깁니다.
+     상단 메뉴는 position:fixed 로 히어로 위에 겹치므로 높이를 빼지 않습니다. */
+  .hero{ --hero-avail:100svh;
+    position:relative; background:linear-gradient(165deg,#0a4fd0,#0172fe 55%,#0a63ff); color:#fff; overflow:hidden;
+    aspect-ratio:16/9; width:min(100%, calc(var(--hero-avail) * 16 / 9)); max-height:var(--hero-avail);
+    margin-inline:auto; box-sizing:border-box;
+    /* 문구·단추 크기를 이 칸 폭에 비례시키려고 컨테이너로 선언합니다(cqw 단위). */
+    container-type:size; }
+  /* 좌우 여백 자리 */
+  .hero-band{ background:#061020; }
   .slides{ position:absolute; inset:0; z-index:0; }
   .slide{ position:absolute; inset:0; opacity:0; transition:opacity .9s ease; }
   .slide.active{ opacity:1; }
@@ -221,18 +233,21 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .hero-inner{ position:relative; z-index:2; height:100%; display:flex; flex-direction:column;
     justify-content:center; }
   .hero-inner .container{ width:100%; }
-  .hero h1{ font-size:clamp(32px,5.2vw,58px); font-weight:700; line-height:1.18; letter-spacing:-.02em;
-    word-break:keep-all; max-width:18ch; animation:rise .8s .1s ease both; }
+  /* cqw = 히어로 칸 폭의 1%. 디어데이와 같은 값을 씁니다(관리자 한 곳에서 정한 것이
+     두 사이트에 같게 나오도록). */
+  .hero h1{ font-size:6.44cqw; font-weight:800; line-height:1.06; letter-spacing:-.02em;
+    word-break:keep-all; max-width:none; animation:rise .8s .1s ease both; }
   /* 제목 기본이 700 이라 <b> 기본값(700)과 같아서 굵게가 눈에 안 보였습니다. */
   .hero h1 b, .hero h1 strong{ font-weight:900; }
-  .hero .sub{ margin-top:18px; font-size:clamp(16px,2vw,20px); color:rgba(255,255,255,.82); max-width:40ch;
+  .hero .sub{ margin-top:1.4em; font-size:1.31cqw; color:rgba(255,255,255,.82); max-width:31ch;
     word-break:keep-all; animation:rise .8s .25s ease both; }
   .hero-search{ margin-top:28px; max-width:520px; display:flex; align-items:center; gap:8px; padding:8px 8px 8px 18px;
     opacity:0; transform:translateY(16px); animation:rise .8s .4s ease forwards; }
   .hero-search svg{ width:20px; height:20px; stroke:rgba(255,255,255,.7); flex:none; }
   .hero-search input{ flex:1; height:40px; background:none; border:none; color:#fff; font-family:inherit; font-size:15px; outline:none; }
   .hero-search input::placeholder{ color:rgba(255,255,255,.55); }
-  .hero-cta{ margin-top:26px; display:flex; gap:12px; flex-wrap:wrap; animation:rise .8s .55s ease both; }
+  .hero-cta{ margin-top:2.2cqw; display:flex; gap:0.83cqw; flex-wrap:wrap; animation:rise .8s .55s ease both; }
+  .hero .hero-cta .btn{ height:auto; font-size:1.04cqw; padding:0.83cqw 1.67cqw; border-radius:100px; }
   @keyframes rise{ from{ opacity:0; transform:translateY(16px); } to{ opacity:1; transform:none; } }
 
   /* 캐러셀 컨트롤 */
@@ -1181,14 +1196,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .g3, .g2, .results{ grid-template-columns:1fr; }
   }
   @media (max-width:700px){
-    .hero{ height:34vh; min-height:260px; }
     .slide.active img, .slide.active video{ object-fit:contain; }
-    .hero h1{ line-height:1.26; max-width:15ch; }
+    .hero h1{ line-height:1.12; }
     /* 모바일: 화살표 버튼 숨김 (스와이프로 대체) */
     .h-arrows{ display:none; }
-    .hero .sub{ margin-top:6px; font-size:13px; }
-    .hero-cta{ margin-top:10px; gap:6px; }
-    .hero-cta .btn{ height:40px; font-size:16px; padding:0 14px; }
     .hero-carousel-shell{ min-height:620px; }
     .gallery-card{ width:clamp(140px,52vw,230px); border-radius:14px; }
     .gallery-logo .kicker{ font-size:12px; }
@@ -1197,12 +1208,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .gallery-cta{ margin-top:22px; }
     .main-hero-controls{ bottom:18px; }
   }
-  /* 모바일: 다른 페이지와 히어로 제목 폰트 크기 통일 */
+  /* 모바일 히어로 제목 — 예전에는 브라우저 창 폭(vw)으로 못 박고 !important 로
+     눌러 두었습니다. 이제 히어로 칸 폭에 비례하므로(디어데이와 같은 값) 여기서는
+     줄바꿈 규칙만 남깁니다. 크기는 맨 아래 모바일 블록이 정합니다. */
   @media (max-width:900px){
-    body .hero h1{ font-size:clamp(24px, 7vw, 32px) !important; word-break:keep-all !important; }
-  }
-  @media (max-width:480px){
-    body .hero h1{ font-size:clamp(21px, 6.4vw, 26px) !important; }
+    body .hero h1{ word-break:keep-all; }
   }
   @media (prefers-reduced-motion:reduce){
     html{ scroll-behavior:auto; }
@@ -1579,8 +1589,11 @@ h2:not(.is-in) .vertical-cut-title .vcr-inner,
 <style>
 /* ===== 첨부 히어로 섹션 반영 (중앙정렬 + 줌인) ===== */
 /* hero center align + zoom */
+/* 문구 칸도 히어로 폭 기준입니다. .container 의 고정 폭과 24px 여백을 그대로 두면
+   히어로 폭이 바뀔 때 문구 시작 위치가 제각각이 됩니다(디어데이에서 실측한 문제). */
 .hero-inner .container{
 display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+max-width:none;padding:0 5.56cqw;
 }
 .hero h1,.hero .sub{max-width:none;text-align:center;}
 .hero-search{margin-left:auto;margin-right:auto;}
@@ -2125,6 +2138,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div data-site-nav></div>
 <script src="/assets/site-layout.js?v=20260908-biz-1"></script>
 <!-- ============ 1. 캐러셀 히어로 ============ -->
+<!-- 히어로는 16:9 고정 칸이라 넓은 화면에서는 좌우에 여백이 생깁니다. 그 자리를 이 띠가 채웁니다. -->
+<div class="hero-band">
 <header class="hero" id="hero">
   <div class="slides" id="slides">
     <!-- 각 slide 안에 <img src> 또는 <video autoplay muted loop playsinline> 를 넣으면 폴백 배경을 덮습니다. -->
@@ -2146,6 +2161,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   
 </header>
+</div>
 <!-- ============ 3. 대표 강의 / 과정 ============ -->
 <section class="course-section" id="courses">
 <div class="course-container">
@@ -3110,6 +3126,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   .field-video-frame video{
     border-radius:16px;
   }
+}
+/* ===== 모바일 히어로 — 디어데이와 같은 규칙 =====
+   16:9 로 두면 390 폭에서 높이가 219px 뿐이라 문구가 들어갈 자리가 모자랍니다.
+   3:2 로 넓히고, 문구·단추 비율도 모바일용으로 따로 둡니다. */
+@media (max-width:700px){
+  .hero{ aspect-ratio:3/2; width:min(100%, calc(var(--hero-avail) * 3 / 2)); }
+  .hero h1{ font-size:8cqw; }
+  .hero .sub{ font-size:3.2cqw; margin-top:1.2em; }
+  .hero-cta{ gap:2cqw; margin-top:1.6cqw; }
+  .hero .hero-cta .btn{ font-size:3cqw; padding:1.9cqw 3.8cqw; }
 }
 </style>
 <section class="section field-preview-section" id="free">
