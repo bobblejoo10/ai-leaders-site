@@ -235,11 +235,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .hero-inner .container{ width:100%; }
   /* cqw = 히어로 칸 폭의 1%. 디어데이와 같은 값을 씁니다(관리자 한 곳에서 정한 것이
      두 사이트에 같게 나오도록). */
-  .hero h1{ font-size:6.44cqw; font-weight:800; line-height:1.06; letter-spacing:-.02em;
+  .hero h1{ font-size:3cqw; font-weight:800; line-height:1.06; letter-spacing:-.02em;
     word-break:keep-all; max-width:none; animation:rise .8s .1s ease both; }
   /* 제목 기본이 700 이라 <b> 기본값(700)과 같아서 굵게가 눈에 안 보였습니다. */
   .hero h1 b, .hero h1 strong{ font-weight:900; }
-  .hero .sub{ margin-top:1.4em; font-size:1.31cqw; color:rgba(255,255,255,.82);
+  .hero .sub{ margin-top:1.4em; font-size:1cqw; color:rgba(255,255,255,.82);
     word-break:keep-all; animation:rise .8s .25s ease both; }
   .hero-search{ margin-top:28px; max-width:520px; display:flex; align-items:center; gap:8px; padding:8px 8px 8px 18px;
     opacity:0; transform:translateY(16px); animation:rise .8s .4s ease forwards; }
@@ -3136,8 +3136,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
    3:2 로 넓히고, 문구·단추 비율도 모바일용으로 따로 둡니다. */
 @media (max-width:700px){
   .hero{ aspect-ratio:3/2; width:min(100%, calc(var(--hero-avail) * 3 / 2)); }
-  .hero h1{ font-size:8cqw; }
-  .hero .sub{ font-size:3.2cqw; margin-top:1.2em; }
+  .hero h1{ font-size:6cqw; }
+  .hero .sub{ font-size:3cqw; margin-top:1.2em; }
   .hero-cta{ gap:2cqw; margin-top:1.6cqw; }
   .hero .hero-cta .btn{ font-size:3cqw; padding:1.9cqw 3.8cqw; }
 }
