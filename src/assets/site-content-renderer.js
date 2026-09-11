@@ -404,14 +404,20 @@
         scrim.style.opacity = item.overlayEnabled === false ? '0' : '1';
       }
       // 서식본(HTML)이 있으면 그대로, 없으면 평문. 관리자에서 굵게·색·줄바꿈을 넣은 경우입니다.
+      // 좁은 화면에서는 모바일 문구를 먼저 씁니다. 모바일 칸이 비면 PC 문구 그대로입니다.
+      // 고르는 규칙은 세 저장소가 함께 쓰는 banner-layout.js 에 있습니다.
+      // 기준 폭 700 은 이 페이지의 히어로 모바일 CSS 와 같은 값입니다.
       var rich = global.RichText;
-      if (title && (item.titleHtml || item.title)) {
-        if (rich && item.titleHtml) rich.set(title, item.titleHtml, item.title);
-        else if (item.title) title.textContent = item.title;
+      var narrowHero = global.matchMedia ? global.matchMedia('(max-width:700px)').matches : false;
+      var copy = global.BannerLayout && global.BannerLayout.heroText
+        ? global.BannerLayout.heroText(item, narrowHero) : item;
+      if (title && (copy.titleHtml || copy.title)) {
+        if (rich && copy.titleHtml) rich.set(title, copy.titleHtml, copy.title);
+        else if (copy.title) title.textContent = copy.title;
       }
-      if (subtitle && (item.subtitleHtml || item.subtitle)) {
-        if (rich && item.subtitleHtml) rich.set(subtitle, item.subtitleHtml, item.subtitle);
-        else if (item.subtitle) subtitle.textContent = item.subtitle;
+      if (subtitle && (copy.subtitleHtml || copy.subtitle)) {
+        if (rich && copy.subtitleHtml) rich.set(subtitle, copy.subtitleHtml, copy.subtitle);
+        else if (copy.subtitle) subtitle.textContent = copy.subtitle;
       }
       // 직접 지정한 색이 있으면 그 색으로, 비어 있으면 배경 밝기 기본값 그대로.
       applyTextColor(title, item.titleColor);
