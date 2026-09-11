@@ -203,7 +203,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
      상단 메뉴는 position:fixed 로 히어로 위에 겹치므로 높이를 빼지 않습니다. */
   .hero{ --hero-avail:100svh;
     position:relative; background:linear-gradient(165deg,#0a4fd0,#0172fe 55%,#0a63ff); color:#fff; overflow:hidden;
-    aspect-ratio:16/9; width:min(100%, calc(var(--hero-avail) * 16 / 9)); max-height:var(--hero-avail);
+    aspect-ratio:16/9; --hero-hw:0.5625; width:min(100%, calc(var(--hero-avail) * 16 / 9)); max-height:var(--hero-avail);
     margin-inline:auto; box-sizing:border-box;
     /* 문구·단추 크기를 이 칸 폭에 비례시키려고 컨테이너로 선언합니다(cqw 단위). */
     container-type:size; }
@@ -235,11 +235,15 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .hero-inner .container{ width:100%; }
   /* cqw = 히어로 칸 폭의 1%. 디어데이와 같은 값을 씁니다(관리자 한 곳에서 정한 것이
      두 사이트에 같게 나오도록). */
-  .hero h1{ font-size:5cqw; font-weight:800; line-height:1.06; letter-spacing:-.02em;
+  /* 글자 비율과 세부 위치는 관리자에서 배너마다 정합니다.
+     기본값 숫자는 여기에 두지 않습니다 — 세 저장소가 함께 쓰는 banner-layout.js 한 곳에만
+     있고, 그 파일이 --hero-* 변수를 늘 채워 넣습니다. 여기에 숫자를 또 적으면 값이
+     세 벌이 되어 관리자에서 한 번에 못 바꿉니다. 1cqw = 히어로 칸 폭의 1%. */
+  .hero h1{ font-size:calc(var(--hero-title-vw) * 1cqw); font-weight:800; line-height:1.06; letter-spacing:-.02em;
     word-break:keep-all; max-width:none; animation:rise .8s .1s ease both; }
   /* 제목 기본이 700 이라 <b> 기본값(700)과 같아서 굵게가 눈에 안 보였습니다. */
   .hero h1 b, .hero h1 strong{ font-weight:900; }
-  .hero .sub{ margin-top:1.4em; font-size:2cqw; color:rgba(255,255,255,.82);
+  .hero .sub{ margin-top:1.4em; font-size:calc(var(--hero-sub-vw) * 1cqw); color:rgba(255,255,255,.82);
     word-break:keep-all; animation:rise .8s .25s ease both; }
   .hero-search{ margin-top:28px; max-width:520px; display:flex; align-items:center; gap:8px; padding:8px 8px 8px 18px;
     opacity:0; transform:translateY(16px); animation:rise .8s .4s ease forwards; }
@@ -247,7 +251,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .hero-search input{ flex:1; height:40px; background:none; border:none; color:#fff; font-family:inherit; font-size:15px; outline:none; }
   .hero-search input::placeholder{ color:rgba(255,255,255,.55); }
   .hero-cta{ margin-top:2.2cqw; display:flex; gap:0.83cqw; flex-wrap:wrap; animation:rise .8s .55s ease both; }
-  .hero .hero-cta .btn{ height:auto; font-size:1.04cqw; padding:0.83cqw 1.67cqw; border-radius:100px; }
+  .hero .hero-cta .btn{ height:auto; font-size:calc(var(--hero-cta-vw) * 1cqw); padding:0.8em 1.6em; border-radius:100px; }
   @keyframes rise{ from{ opacity:0; transform:translateY(16px); } to{ opacity:1; transform:none; } }
 
   /* 캐러셀 컨트롤 */
@@ -1598,6 +1602,10 @@ display:flex;flex-direction:column;align-items:stretch;justify-content:center;te
    좌우 여백과 좌우 자리는 바깥(.hero-inner)이 맡습니다. margin 을 0 으로 두지 않으면
    .container 기본값(margin:0 auto)이 [문구 자리] 를 늘 가운데로 되돌립니다. */
 width:max-content;max-width:100%;margin:0;padding:0;
+/* 세부 위치 — 자리(9칸)로 잡은 뒤 여기서 더 밉니다. 양수면 오른쪽·아래입니다. */
+/* 세로 밀기에 1cqh 를 안 쓰는 이유는 디어데이 index.html 의 .hero-copy 주석과 같습니다.
+   aspect-ratio 로 높이가 정해진 칸은 크로미움에서 1cqh 가 실제 높이와 다르게 나옵니다. */
+transform:translate(calc(var(--hero-dx) * 1cqw), calc(var(--hero-dy) * var(--hero-hw) * 1cqw));
 }
 .hero h1,.hero .sub{max-width:none;text-align:center;}
 .hero-search{margin-left:auto;margin-right:auto;}
@@ -3135,11 +3143,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
    16:9 로 두면 390 폭에서 높이가 219px 뿐이라 문구가 들어갈 자리가 모자랍니다.
    3:2 로 넓히고, 문구·단추 비율도 모바일용으로 따로 둡니다. */
 @media (max-width:700px){
-  .hero{ aspect-ratio:3/2; width:min(100%, calc(var(--hero-avail) * 3 / 2)); }
-  .hero h1{ font-size:7.5cqw; }
-  .hero .sub{ font-size:3cqw; margin-top:1.2em; }
+  .hero{ aspect-ratio:3/2; --hero-hw:0.66667; width:min(100%, calc(var(--hero-avail) * 3 / 2)); }
+  .hero h1{ font-size:calc(var(--hero-m-title-vw) * 1cqw); }
+  .hero .sub{ font-size:calc(var(--hero-m-sub-vw) * 1cqw); margin-top:1.2em; }
   .hero-cta{ gap:2cqw; margin-top:1.6cqw; }
-  .hero .hero-cta .btn{ font-size:3cqw; padding:1.9cqw 3.8cqw; }
+  .hero .hero-cta .btn{ font-size:calc(var(--hero-m-cta-vw) * 1cqw); padding:0.6333em 1.2667em; }
+  /* 모바일 세부 위치 — 안 정하면 PC 값을 씁니다(자리 칸과 같은 규칙). */
+  .hero-inner .container{ transform:translate(calc(var(--hero-m-dx) * 1cqw),
+                                              calc(var(--hero-m-dy) * var(--hero-hw) * 1cqw)); }
 }
 </style>
 <section class="section field-preview-section" id="free">
@@ -3980,12 +3991,12 @@ document.addEventListener('DOMContentLoaded', function(){
 <!-- ===== 리모컨 바 끝 ===== -->
 
 <script src="/assets/supabase-store-common.js?v=20260902-site-scope-1"></script>
-<script src="/assets/site-content-store.js?v=20260911-mtext-1"></script>
+<script src="/assets/site-content-store.js?v=20260911-tune-1"></script>
 <script src="/assets/public-media-overrides.js?v=20260908-r2-1"></script>
 <script src="/assets/courses-store.js?v=20260831-sessions-1"></script>
 <script src="/assets/home-featured-renderer.js?v=20260729-instructor-sort-1"></script>
 <script src="/assets/rich-text.js?v=20260911-size-1"></script>
-<script src="/assets/banner-layout.js?v=20260911-mtext-1"></script>
+<script src="/assets/banner-layout.js?v=20260911-tune-2"></script>
 <script src="/assets/banner-cta.js?v=20260911-cta-1"></script>
 <script src="/assets/site-content-renderer.js?v=20260911-mtext-1"></script>
 <script>
