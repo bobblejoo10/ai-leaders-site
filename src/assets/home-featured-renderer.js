@@ -126,6 +126,8 @@
   }
 
   var subscribed = false;
+  // 자료를 못 불러왔을 때 다시 그리는 것은 한 번만 합니다.
+  var retriedAfterFailure = false;
 
   function render(options) {
     var s = store();
@@ -139,7 +141,16 @@
       });
       subscribed = true;
     }
-    if (typeof s.ready === 'function') {
+    // 자료가 준비되면 다시 그립니다. 실패했을 때도 한 번은 다시 그려야
+    // 아래의 '불러오지 못했습니다' 안내가 화면에 나옵니다.
+    //
+    // 예전에는 여기에 잠금이 없어서, 실패하면 render 가 다시 render 를 부르고
+    // 그 안에서 또 불러오다 실패하는 일이 끝없이 돌았습니다. 자료 서버에
+    // 잠깐이라도 닿지 못하면 페이지 전체가 멈췄습니다.
+    // 헤드리스로 확인했을 때 이 줄에서 멈춰 있었고, 화면이 아무 반응도 하지
+    // 않았습니다.
+    if (!retriedAfterFailure && typeof s.ready === 'function') {
+      retriedAfterFailure = true;
       s.ready().catch(function () {
         render(opts);
       });
