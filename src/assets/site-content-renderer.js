@@ -447,7 +447,19 @@
           // 히어로보다 가로로 길면 잘라내는 대신 히어로 세로가 줄어듭니다(banner-layout.js).
           if (slideIndex === index && global.BannerLayout && global.BannerLayout.watchHeroMedia) {
             var media = slide.querySelector('video') || slide.querySelector('img');
-            if (media) global.BannerLayout.watchHeroMedia(document.querySelector('.hero'), media);
+            if (media) {
+              global.BannerLayout.watchHeroMedia(document.querySelector('.hero'), media);
+              // 남는 좌우 여백을 같은 그림·영상으로 채웁니다(흐리게).
+              if (global.BannerLayout.setBleed) {
+                var fill = function () {
+                  global.BannerLayout.setBleed(document.querySelector('.hero'),
+                    media.tagName === 'VIDEO' ? 'video' : 'img',
+                    media.currentSrc || media.getAttribute('src') || '');
+                };
+                if (media.currentSrc || media.getAttribute('src')) fill();
+                else media.addEventListener('load', fill, { once: true });
+              }
+            }
           }
           slide.querySelectorAll('video').forEach(function (video) {
             if (slideIndex === index) {
