@@ -1229,7 +1229,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .g3, .g2, .results{ grid-template-columns:1fr; }
   }
   @media (max-width:700px){
-    .slide.active img, .slide.active video{ object-fit:contain; }
+    /* .slide.active img{object-fit:contain} 을 여기서 뺐습니다.
+       좁은 화면에서 배경을 원본 비 그대로 넣어 위아래에 빈 띠를 만들던 규칙입니다.
+       앞서 뺀 세 곳(heroZoom·heroSlowZoomIn·모바일 contain) 말고 네 번째로 남아 있었고,
+       이것 때문에 창을 좁히면 여전히 위아래 여백이 생겼습니다(실측: 585px 에서 object-fit 이 contain).
+       배경은 이제 언제나 cover 이고, 좌우 여백은 원본이 가진 만큼만 넓혀서 채웁니다. */
     /* 모바일 제목 줄 간격은 --hero-m-title-lh 로 옮겼습니다(banner-layout.js 한 곳).
        여기 1.12 를 두면 디어데이(1.06)와 달라집니다. */
     /* 모바일: 화살표 버튼 숨김 (스와이프로 대체) */
@@ -4010,7 +4014,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <script src="/assets/home-featured-renderer.js?v=20260729-instructor-sort-1"></script>
 <script src="/assets/rich-text.js?v=20260911-size-1"></script>
 <script src="/assets/banner-cta.js?v=20260911-cta-1"></script>
-<script src="/assets/site-content-renderer.js?v=20260914-bleed-1"></script>
+<script src="/assets/site-content-renderer.js?v=20260914-fit-1"></script>
 <script>
 CourseHomeFeaturedRenderer.render({ limit: 8 });
 </script>

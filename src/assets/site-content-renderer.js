@@ -383,7 +383,11 @@
     var primaryUrlFallback = links[0] ? (links[0].getAttribute('href') || '/course-free/') : '/course-free/';
     var secondaryUrlFallback = links[1] ? (links[1].getAttribute('href') || '/course-paid/') : '/course-paid/';
     var slides = document.getElementById('slides');
-    var scrim = hero.querySelector('.hero-scrim');
+    // 막은 이제 .hero 가 아니라 .hero-band 안에 있습니다(배경과 함께 밖으로 옮겼습니다).
+    // hero.querySelector 로만 찾으면 못 찾아서, 관리자에서 [그라데이션 씌우기] 를 꺼도
+    // 막이 계속 덮여 있었습니다(실측: 배포된 리더스에서 opacity 가 1, 인라인 style 없음).
+    var heroBox = hero.closest ? (hero.closest('.hero-band') || hero) : hero;
+    var scrim = hero.querySelector('.hero-scrim') || heroBox.querySelector('.hero-scrim');
     var hasManagedMedia = banners.some(function (banner) {
       return banner.desktopImage || banner.mobileImage || banner.videoUrl;
     });
