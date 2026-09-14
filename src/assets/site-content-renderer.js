@@ -439,6 +439,12 @@
       if (shouldRenderManagedSlides) {
         slides.querySelectorAll('.slide').forEach(function (slide, slideIndex) {
           slide.classList.toggle('active', slideIndex === index);
+          // 지금 보이는 그림·영상의 가로세로 비를 히어로에 알려 줍니다.
+          // 히어로보다 가로로 길면 잘라내는 대신 히어로 세로가 줄어듭니다(banner-layout.js).
+          if (slideIndex === index && global.BannerLayout && global.BannerLayout.watchHeroMedia) {
+            var media = slide.querySelector('video') || slide.querySelector('img');
+            if (media) global.BannerLayout.watchHeroMedia(document.querySelector('.hero'), media);
+          }
           slide.querySelectorAll('video').forEach(function (video) {
             if (slideIndex === index) {
               video.play().catch(function () {});
