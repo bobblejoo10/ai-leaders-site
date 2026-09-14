@@ -225,14 +225,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     --hero-w:min(100%, calc(var(--hero-avail) * var(--hero-base-ar)));
     --hero-h:calc(var(--hero-w) / var(--hero-base-ar));
     position:relative; overflow:hidden; background:#061020; }
-  /* 남는 여백 채우기 — 같은 그림·영상을 띠 전체에 꽉 채워 흐리게 깝니다.
-     그 위에 제대로 된 크기의 원본이 올라가므로 가운데는 선명하고 가장자리만 번집니다.
-     DOM 에서 원본보다 앞에 있어 같은 z-index 라도 아래에 깔립니다.
-     scale 을 조금 키우는 이유 — 흐리게 하면 가장자리가 투명하게 빠져서 띠 색이 비칩니다. */
-  .hero-bleed{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
-  .hero-bleed video,.hero-bleed img{position:absolute;inset:0;width:100%;height:100%;
-    object-fit:cover;filter:blur(30px) saturate(1.15);transform:scale(1.15);}
-  @media(prefers-reduced-motion:reduce){.hero-bleed video{animation:none;}}
   /* 배경 묶음과 막 — 높이는 늘 히어로와 같고, 폭만 원본 비만큼 넓힙니다.
      폭을 aspect-ratio 로 잡았더니, 화면이 좁아 max-width 에 걸릴 때 높이가
      비를 맞추려고 같이 줄어서 배경이 히어로보다 납작해졌습니다(실측).
@@ -2175,7 +2167,7 @@ transform:translate(calc(var(--hero-dx) * 1cqw), calc(var(--hero-dy) * var(--her
 <!-- banner-layout.js 는 <head> 에서 읽어야 합니다. 히어로 기본값(--hero-*)을
      :root 규칙으로 먼저 깔아 두는데, 몸통 끝에서 읽으면 히어로를 한 번 그린 뒤에
      값이 들어와 화면이 덜컥 움직입니다. -->
-<script src="/assets/banner-layout.js?v=20260914-bleed-3"></script>
+<script src="/assets/banner-layout.js?v=20260914-bleed-2"></script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -2188,8 +2180,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- ============ 1. 캐러셀 히어로 ============ -->
 <!-- 히어로는 16:9 고정 칸이라 넓은 화면에서는 좌우에 여백이 생깁니다. 그 자리를 이 띠가 채웁니다. -->
 <div class="hero-band">
-  <!-- 남는 좌우 여백을 채울 흐린 배경. 내용은 banner-layout.js 가 채웁니다. -->
-  <div class="hero-bleed" aria-hidden="true"></div>
   <!-- 배경과 막은 히어로 칸이 아니라 띠 안에 둡니다. 그래야 화면이 고정 비보다
        가로로 길 때 좌우 여백까지 그림으로 채울 수 있습니다(원본이 가진 만큼만). -->
   <div class="slides" id="slides">
@@ -4038,7 +4028,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <script src="/assets/home-featured-renderer.js?v=20260729-instructor-sort-1"></script>
 <script src="/assets/rich-text.js?v=20260911-size-1"></script>
 <script src="/assets/banner-cta.js?v=20260911-cta-1"></script>
-<script src="/assets/site-content-renderer.js?v=20260914-bleed-3"></script>
+<script src="/assets/site-content-renderer.js?v=20260914-fit-1"></script>
 <script>
 CourseHomeFeaturedRenderer.render({ limit: 8 });
 </script>
