@@ -222,11 +222,17 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .hero-band{ --hero-avail:calc(var(--hero-vh) * 1svh);
     --hero-src-ar:0; --hero-base-ar:calc(16 / 9);
     --hero-media-ar:max(var(--hero-base-ar), var(--hero-src-ar)); --hero-hw:calc(1 / var(--hero-base-ar));
-    position:relative; overflow:hidden;
-    background:linear-gradient(165deg,#0a4fd0,#0172fe 55%,#0a63ff); }
-  /* 배경 묶음과 막 — 높이는 히어로와 같고, 폭은 원본 비만큼만 넓힙니다. */
-  .slides, .hero-scrim{ position:absolute; top:0; bottom:0; left:50%; transform:translateX(-50%);
-    height:100%; width:auto; aspect-ratio:var(--hero-media-ar); max-width:100%; }
+    --hero-w:min(100%, calc(var(--hero-avail) * var(--hero-base-ar)));
+    --hero-h:calc(var(--hero-w) / var(--hero-base-ar));
+    position:relative; overflow:hidden; background:#061020; }
+  /* 배경 묶음과 막 — 높이는 늘 히어로와 같고, 폭만 원본 비만큼 넓힙니다.
+     폭을 aspect-ratio 로 잡았더니, 화면이 좁아 max-width 에 걸릴 때 높이가
+     비를 맞추려고 같이 줄어서 배경이 히어로보다 납작해졌습니다(실측).
+     그래서 높이는 100% 로 고정하고, 폭만 히어로 높이 x 원본비 로 셉니다. */
+  .slides, .hero-scrim{ position:absolute; top:0; left:50%; transform:translateX(-50%);
+    height:100%; width:min(100%, calc(var(--hero-h) * var(--hero-media-ar))); }
+  /* 등록된 것이 없을 때 보이는 바탕입니다. 예전에 .hero 가 갖고 있던 그 색입니다. */
+  .slides{ background:linear-gradient(165deg,#0a4fd0,#0172fe 55%,#0a63ff); }
   .slides{ z-index:0; }
   .slide{ position:absolute; inset:0; opacity:0; transition:opacity .9s ease; }
   .slide.active{ opacity:1; }
@@ -2143,7 +2149,7 @@ transform:translate(calc(var(--hero-dx) * 1cqw), calc(var(--hero-dy) * var(--her
 <!-- banner-layout.js 는 <head> 에서 읽어야 합니다. 히어로 기본값(--hero-*)을
      :root 규칙으로 먼저 깔아 두는데, 몸통 끝에서 읽으면 히어로를 한 번 그린 뒤에
      값이 들어와 화면이 덜컥 움직입니다. -->
-<script src="/assets/banner-layout.js?v=20260914-bleed-1"></script>
+<script src="/assets/banner-layout.js?v=20260914-bleed-2"></script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
