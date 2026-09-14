@@ -239,18 +239,19 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
      기본값 숫자는 여기에 두지 않습니다 — 세 저장소가 함께 쓰는 banner-layout.js 한 곳에만
      있고, 그 파일이 --hero-* 변수를 늘 채워 넣습니다. 여기에 숫자를 또 적으면 값이
      세 벌이 되어 관리자에서 한 번에 못 바꿉니다. 1cqw = 히어로 칸 폭의 1%. */
-  .hero h1{ font-size:calc(var(--hero-title-vw) * 1cqw); font-weight:800; line-height:1.06; letter-spacing:-.02em;
+  .hero h1{ font-size:calc(var(--hero-title-vw) * 1cqw); font-weight:800; line-height:var(--hero-title-lh); letter-spacing:-.02em;
     word-break:keep-all; max-width:none; animation:rise .8s .1s ease both; }
   /* 제목 기본이 700 이라 <b> 기본값(700)과 같아서 굵게가 눈에 안 보였습니다. */
   .hero h1 b, .hero h1 strong{ font-weight:900; }
-  .hero .sub{ margin-top:1.4em; font-size:calc(var(--hero-sub-vw) * 1cqw); color:rgba(255,255,255,.82);
+  .hero .sub{ margin-top:calc(var(--hero-sub-gap) * 1em); font-size:calc(var(--hero-sub-vw) * 1cqw);
+    line-height:var(--hero-sub-lh); color:rgba(255,255,255,.82);
     word-break:keep-all; animation:rise .8s .25s ease both; }
   .hero-search{ margin-top:28px; max-width:520px; display:flex; align-items:center; gap:8px; padding:8px 8px 8px 18px;
     opacity:0; transform:translateY(16px); animation:rise .8s .4s ease forwards; }
   .hero-search svg{ width:20px; height:20px; stroke:rgba(255,255,255,.7); flex:none; }
   .hero-search input{ flex:1; height:40px; background:none; border:none; color:#fff; font-family:inherit; font-size:15px; outline:none; }
   .hero-search input::placeholder{ color:rgba(255,255,255,.55); }
-  .hero-cta{ margin-top:2.2cqw; display:flex; gap:0.83cqw; flex-wrap:wrap; animation:rise .8s .55s ease both; }
+  .hero-cta{ margin-top:calc(var(--hero-cta-gap) * 1cqw); display:flex; gap:0.83cqw; flex-wrap:wrap; animation:rise .8s .55s ease both; }
   .hero .hero-cta .btn{ height:auto; font-size:calc(var(--hero-cta-vw) * 1cqw); padding:0.8em 1.6em; border-radius:100px; }
   @keyframes rise{ from{ opacity:0; transform:translateY(16px); } to{ opacity:1; transform:none; } }
 
@@ -1201,7 +1202,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   }
   @media (max-width:700px){
     .slide.active img, .slide.active video{ object-fit:contain; }
-    .hero h1{ line-height:1.12; }
+    /* 모바일 제목 줄 간격은 --hero-m-title-lh 로 옮겼습니다(banner-layout.js 한 곳).
+       여기 1.12 를 두면 디어데이(1.06)와 달라집니다. */
     /* 모바일: 화살표 버튼 숨김 (스와이프로 대체) */
     .h-arrows{ display:none; }
     .hero-carousel-shell{ min-height:620px; }
@@ -3144,9 +3146,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
    3:2 로 넓히고, 문구·단추 비율도 모바일용으로 따로 둡니다. */
 @media (max-width:700px){
   .hero{ aspect-ratio:3/2; --hero-hw:0.66667; width:min(100%, calc(var(--hero-avail) * 3 / 2)); }
-  .hero h1{ font-size:calc(var(--hero-m-title-vw) * 1cqw); }
-  .hero .sub{ font-size:calc(var(--hero-m-sub-vw) * 1cqw); margin-top:1.2em; }
-  .hero-cta{ gap:2cqw; margin-top:1.6cqw; }
+  .hero h1{ font-size:calc(var(--hero-m-title-vw) * 1cqw); line-height:var(--hero-m-title-lh); }
+  .hero .sub{ font-size:calc(var(--hero-m-sub-vw) * 1cqw); line-height:var(--hero-m-sub-lh);
+    margin-top:calc(var(--hero-m-sub-gap) * 1em); }
+  .hero-cta{ gap:2cqw; margin-top:calc(var(--hero-m-cta-gap) * 1cqw); }
   .hero .hero-cta .btn{ font-size:calc(var(--hero-m-cta-vw) * 1cqw); padding:0.6333em 1.2667em; }
   /* 모바일 세부 위치 — 안 정하면 PC 값을 씁니다(자리 칸과 같은 규칙). */
   .hero-inner .container{ transform:translate(calc(var(--hero-m-dx) * 1cqw),
@@ -3996,7 +3999,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <script src="/assets/courses-store.js?v=20260831-sessions-1"></script>
 <script src="/assets/home-featured-renderer.js?v=20260729-instructor-sort-1"></script>
 <script src="/assets/rich-text.js?v=20260911-size-1"></script>
-<script src="/assets/banner-layout.js?v=20260911-tune-2"></script>
+<script src="/assets/banner-layout.js?v=20260911-gap-1"></script>
 <script src="/assets/banner-cta.js?v=20260911-cta-1"></script>
 <script src="/assets/site-content-renderer.js?v=20260911-mtext-1"></script>
 <script>
