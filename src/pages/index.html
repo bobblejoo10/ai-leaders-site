@@ -258,8 +258,17 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .hero-scrim{ background:linear-gradient(180deg, rgba(2,22,66,.34) 0%, rgba(2,22,66,.14) 40%, rgba(1,18,58,.66) 100%); z-index:1;
     transition:opacity .3s ease; }
 
-  .hero-inner{ position:relative; z-index:2; height:100%; display:flex; flex-direction:column;
-    justify-content:center; align-items:center; padding:0 5.56cqw; box-sizing:border-box; }
+  /* 문구가 상단 메뉴 밑으로 들어가지 않게 합니다.
+     위아래에 메뉴 높이만큼의 최소 자리(minmax)를 두고, 남는 자리는 둘이 똑같이 나눕니다.
+       자리가 넉넉하면 : 위 = 아래 = (히어로높이 - 문구높이) / 2  → 지금과 똑같은 가운데
+       자리가 모자라면 : 위 칸이 메뉴 높이에서 더는 안 줄어듦   → 문구가 아래로 밀림
+     그래서 평소 모습은 그대로이고, 좁아져서 닿을 때만 밀립니다. */
+  /* height:100% 를 쓰지 않습니다. 크로미움에서 aspect-ratio 로 높이가 정해진 칸 안에서는
+     100% 가 실제 높이와 다르게 잡힙니다(디어데이에서 실측: 히어로 765px 인데 칸이 535px).
+     inset:0 은 정확합니다. 디어데이 .hero-grid 와 같은 이유입니다. */
+  .hero-inner{ position:absolute; inset:0; z-index:2; display:flex; flex-direction:column;
+    align-items:center; padding:0 5.56cqw; box-sizing:border-box; }
+  .hero-inner::before, .hero-inner::after{ content:''; flex:1 0 var(--nav-h); }
   .hero-inner .container{ width:100%; }
   /* cqw = 히어로 칸 폭의 1%. 디어데이와 같은 값을 씁니다(관리자 한 곳에서 정한 것이
      두 사이트에 같게 나오도록). */
@@ -1650,9 +1659,12 @@ transform:translate(calc(var(--hero-dx) * 1cqw), calc(var(--hero-dy) * var(--her
 
 /* ===== 배너 문구·단추 자리 (관리자에서 고른 값) =====
    관리자에서 고르지 않으면 아래 클래스가 안 붙어서 위의 중앙정렬이 그대로 유지됩니다. */
-.hero.hero-v-top .hero-inner{ justify-content:flex-start; }
-.hero.hero-v-middle .hero-inner{ justify-content:center; }
-.hero.hero-v-bottom .hero-inner{ justify-content:flex-end; }
+/* 세로 자리 — 앞뒤 여백칸의 크기로 정합니다. 어느 쪽이든 메뉴 높이는 늘 비워 둡니다. */
+.hero.hero-v-top .hero-inner::before{ flex:0 0 var(--nav-h); }
+.hero.hero-v-top .hero-inner::after{ flex:1 0 0; }
+.hero.hero-v-middle .hero-inner::before,.hero.hero-v-middle .hero-inner::after{ flex:1 0 var(--nav-h); }
+.hero.hero-v-bottom .hero-inner::before{ flex:1 0 0; }
+.hero.hero-v-bottom .hero-inner::after{ flex:0 0 var(--nav-h); }
 .hero.hero-h-left .hero-inner{ align-items:flex-start; }
 .hero.hero-h-center .hero-inner{ align-items:center; }
 .hero.hero-h-right .hero-inner{ align-items:flex-end; }
@@ -1667,9 +1679,11 @@ transform:translate(calc(var(--hero-dx) * 1cqw), calc(var(--hero-dy) * var(--her
    관리자에서 모바일을 따로 고르면 이 클래스가 붙습니다. 모바일 구간에서만 듣습니다.
    모바일을 안 고르면 PC 값이 그대로 들어와(banner-layout.js) 같은 자리가 됩니다. */
 @media (max-width:700px){
-  .hero.hero-m-v-top .hero-inner{ justify-content:flex-start; }
-  .hero.hero-m-v-middle .hero-inner{ justify-content:center; }
-  .hero.hero-m-v-bottom .hero-inner{ justify-content:flex-end; }
+  .hero.hero-m-v-top .hero-inner::before{ flex:0 0 var(--nav-h); }
+  .hero.hero-m-v-top .hero-inner::after{ flex:1 0 0; }
+  .hero.hero-m-v-middle .hero-inner::before,.hero.hero-m-v-middle .hero-inner::after{ flex:1 0 var(--nav-h); }
+  .hero.hero-m-v-bottom .hero-inner::before{ flex:1 0 0; }
+  .hero.hero-m-v-bottom .hero-inner::after{ flex:0 0 var(--nav-h); }
   .hero.hero-m-h-left .hero-inner{ align-items:flex-start; }
   .hero.hero-m-h-center .hero-inner{ align-items:center; }
   .hero.hero-m-h-right .hero-inner{ align-items:flex-end; }
