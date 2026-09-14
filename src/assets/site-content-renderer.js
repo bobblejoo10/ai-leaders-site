@@ -798,12 +798,24 @@
     document.body.appendChild(badge);
   }
 
-  var FAQ_CATEGORIES = [
-    ['apply', '수강 · 신청'],
-    ['lecture', '강연 · 방식'],
-    ['pay', '결제 · 환불'],
-    ['biz', '기업 · 기관 교육']
-  ];
+  // FAQ 분류는 관리자 [홈페이지 관리 > FAQ > FAQ 분류] 에서 옵니다.
+  // 예전에는 apply·lecture·pay·biz 네 가지가 여기 박혀 있었습니다.
+  function faqCategories() {
+    var list = store.getFaqCategories ? store.getFaqCategories() : [];
+    return list.map(function (item) { return [item.value, item.label]; });
+  }
+
+  // 답변은 관리자 편집기가 만든 서식본을 씁니다.
+  // RichText.sanitize 가 허용한 태그만 남기므로 그대로 넣어도 안전합니다.
+  // 서식본이 없으면 옛 글처럼 평문을 글자로 넣고 줄바꿈만 살립니다.
+  function faqAnswerHtml(item) {
+    var html = item && item.answerHtml;
+    if (html && global.RichText && typeof global.RichText.sanitize === 'function') {
+      var safe = global.RichText.sanitize(html);
+      if (safe) return safe;
+    }
+    return escapeHtml(item ? item.answer : '').replace(/\n/g, '<br>');
+  }
 
   function renderFaqs() {
     var tabs = document.querySelector('.faq-tabs');
@@ -819,18 +831,23 @@
       group.parentNode.removeChild(group);
     });
 
-    FAQ_CATEGORIES.forEach(function (cat) {
-      var items = faqs.filter(function (item) { return item.category === cat[0]; });
+    var groups = faqCategories();
+    // 분류가 하나도 없으면 한 덩어리로 그립니다.
+    if (!groups.length) groups = [['', '']];
+    groups.forEach(function (cat) {
+      var items = cat[0]
+        ? faqs.filter(function (item) { return item.category === cat[0]; })
+        : faqs;
       if (!items.length) return;
       var group = document.createElement('div');
       group.className = 'faq-group reveal is-in';
       group.setAttribute('data-cat', cat[0]);
-      group.innerHTML = '<p class="faq-group-title"><span class="tick"></span>' + escapeHtml(cat[1]) + '</p>'
+      group.innerHTML = (cat[1] ? '<p class="faq-group-title"><span class="tick"></span>' + escapeHtml(cat[1]) + '</p>' : '')
         + '<div class="faq">'
         + items.map(function (item) {
             return '<div class="faq-item"><div class="faq-header">'
               + '<button aria-expanded="false" class="faq-trigger">' + escapeHtml(item.question) + chev + '</button>'
-              + '</div><div class="faq-content"><div class="faq-content-inner">' + escapeHtml(item.answer).replace(/\n/g, '<br>') + '</div></div></div>';
+              + '</div><div class="faq-content"><div class="faq-content-inner">' + faqAnswerHtml(item) + '</div></div></div>';
           }).join('')
         + '</div>';
       container.insertBefore(group, noResult);
