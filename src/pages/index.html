@@ -229,8 +229,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
      폭을 aspect-ratio 로 잡았더니, 화면이 좁아 max-width 에 걸릴 때 높이가
      비를 맞추려고 같이 줄어서 배경이 히어로보다 납작해졌습니다(실측).
      그래서 높이는 100% 로 고정하고, 폭만 히어로 높이 x 원본비 로 셉니다. */
-  .slides, .hero-scrim{ position:absolute; top:0; left:50%; transform:translateX(-50%);
+  .slides, .hero-scrim, .hero-pin{ position:absolute; top:0; left:50%; transform:translateX(-50%);
     height:100%; width:min(100%, calc(var(--hero-h) * var(--hero-media-ar))); }
+  /* 고정 PNG — 관리자 [고정 PNG 파일]. 배경 위·막 아래에 비율 그대로 얹습니다.
+     배경이 천천히 커졌다 줄어드는 움직임(bg_zoom)은 .slide 에 걸려 있어서 여기는 안 따라갑니다. */
+  .hero-pin{ z-index:0; object-fit:contain; pointer-events:none; }
   /* 등록된 것이 없을 때 보이는 바탕입니다. 예전에 .hero 가 갖고 있던 그 색입니다. */
   .slides{ background:linear-gradient(165deg,#0a4fd0,#0172fe 55%,#0a63ff); }
   .slides{ z-index:0; }

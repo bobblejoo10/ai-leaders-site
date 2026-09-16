@@ -409,6 +409,28 @@
         scrim.style.background = overlayGradient(item.overlayColor);
         scrim.style.opacity = item.overlayEnabled === false ? '0' : '1';
       }
+      // 고정 PNG — 배경 위, 그라데이션 막 아래. 배경 확대 움직임을 따라가지 않습니다.
+      // 비율은 그대로 두고 히어로 칸 안에 들어가게 맞춥니다(object-fit:contain).
+      var pinSrc = resolvePublicMediaUrl(item.fixedImage);
+      var pin = heroBox.querySelector('.hero-pin');
+      if (pinSrc && !pin) {
+        pin = document.createElement('img');
+        pin.className = 'hero-pin';
+        pin.alt = '';
+        pin.setAttribute('aria-hidden', 'true');
+        if (slides && slides.parentNode === heroBox) heroBox.insertBefore(pin, slides.nextSibling);
+        else heroBox.insertBefore(pin, heroBox.firstChild);
+      }
+      if (pin) {
+        if (pinSrc) {
+          if (pin.getAttribute('src') !== pinSrc) pin.setAttribute('src', pinSrc);
+          pin.hidden = false;
+        } else {
+          pin.hidden = true;
+          pin.removeAttribute('src');
+        }
+      }
+
       // 서식본(HTML)이 있으면 그대로, 없으면 평문. 관리자에서 굵게·색·줄바꿈을 넣은 경우입니다.
       // 좁은 화면에서는 모바일 문구를 먼저 씁니다. 모바일 칸이 비면 PC 문구 그대로입니다.
       // 고르는 규칙은 세 저장소가 함께 쓰는 banner-layout.js 에 있습니다.
