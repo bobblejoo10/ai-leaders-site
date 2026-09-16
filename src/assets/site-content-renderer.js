@@ -990,14 +990,26 @@
     if (typeof global.AiLeadersFaqInit === 'function') global.AiLeadersFaqInit();
   }
 
+  // 히어로는 한 번만 그립니다. 배너만 먼저 와도 그리고, 그 뒤 전체 로딩이 끝나도 다시 안 그립니다.
+  var heroRendered = false;
+  function renderHeroOnce() {
+    if (heroRendered) return Promise.resolve();
+    heroRendered = true;
+    return renderHero().catch(function () {});
+  }
+
   function renderAll() {
     renderPreviewBadge();
-    renderHero().catch(function () {});
+    renderHeroOnce();
     renderLandingInstructors();
     renderAboutInstructors();
     renderFormOptions();
     renderFaqs();
   }
 
+  // 배너 한 표만 오면 히어로를 먼저 그립니다. 나머지 표는 안 기다립니다.
+  if (typeof store.readyBanners === 'function') {
+    store.readyBanners().then(renderHeroOnce).catch(function () {});
+  }
   store.ready().then(renderAll).catch(function () {});
 })(window, document);
