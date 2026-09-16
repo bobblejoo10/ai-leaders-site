@@ -503,7 +503,13 @@
       // 이제 기다리지 않습니다. 문구는 바로 나오고 배경은 도착하는 대로 뒤에 깔립니다.
       slides.innerHTML = banners.map(function (banner, index) {
         var active = index === 0 ? ' active' : '';
-        var fallbackClass = ' s' + ((index % 4) + 1);
+        // s1~s4 는 "등록된 것이 없는 배너" 에 깔아 주는 바탕입니다.
+        // 예전에는 그림·영상이 있는 배너에도 붙어서, 슬라이드를 갈아끼운 뒤
+        // 그림이 그려질 때까지 이 짙은 파랑이 잠깐 드러났습니다
+        // (불러오는 동안 보이던 브랜드 바탕 -> 짙은 파랑 -> 그림, 이렇게 두 번 바뀜).
+        // 등록된 것이 있으면 붙이지 않습니다. 그동안은 띠의 브랜드 바탕이 그대로 비칩니다.
+        var hasMedia = !!(banner.videoUrl || banner.desktopImage || banner.mobileImage);
+        var fallbackClass = hasMedia ? '' : (' s' + ((index % 4) + 1));
         var eager = index === 0;
         if (banner.videoUrl) {
           // 배너에 올린 그림이 있으면 영상이 뜨기 전에 보여줄 그림(poster)으로 씁니다.
