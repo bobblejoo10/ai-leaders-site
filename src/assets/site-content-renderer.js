@@ -258,6 +258,8 @@
     });
   }
 
+  // 지금은 쓰지 않습니다. 히어로는 배경을 기다리지 않고 바로 그립니다(renderHero 참고).
+  // 나중에 "미리 받아 두기"가 필요해질 때를 위해 남겨 둡니다.
   function preloadHeroBanner(banner) {
     if (banner.videoUrl) return preloadVideo(resolvePublicMediaUrl(banner.videoUrl));
     return preloadImage(preferredHeroImage(banner));
@@ -471,9 +473,12 @@
     }
 
     if (shouldRenderManagedSlides) {
-      var firstMediaReady = await preloadHeroBanner(banners[0]);
-      if (!firstMediaReady) return;
-
+      // 예전에는 여기서 첫 배경(그림 또는 영상)이 끝까지 다 내려올 때까지 기다린 뒤에야
+      // 제목·부제·단추·색을 그렸습니다. 두 가지가 나빴습니다.
+      //   1. 그림이 클수록 문구까지 같이 늦어졌습니다 — 그동안 기본 화면이 남아 있었습니다.
+      //   2. 아이폰은 화면에 없는 영상을 미리 받아 주지 않습니다. 그래서 8초를 기다리다
+      //      실패로 보고 return 해 버려, 히어로가 통째로 기본 화면으로 남았습니다.
+      // 이제 기다리지 않습니다. 문구는 바로 나오고 배경은 도착하는 대로 뒤에 깔립니다.
       slides.innerHTML = banners.map(function (banner, index) {
         var active = index === 0 ? ' active' : '';
         var fallbackClass = ' s' + ((index % 4) + 1);
