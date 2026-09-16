@@ -374,6 +374,60 @@
     return pageName === 'index' ? '/' + suffix : '/' + pageName + '/' + suffix;
   }
 
+  // ── 로딩 중에는 겉모습을 바꾸지 않습니다 ──────────────────
+  //
+  // 예전에는 관리자 설정이 도착하는 즉시 배경 밝기(글자색)와 그라데이션 막을 씌웠습니다.
+  // 그런데 배경은 그때 내려받기가 막 시작됩니다. 그래서 배경이 아직 없는 브랜드
+  // 그라데이션 위에 막만 얹힌 구간이 보였습니다. 고정 PNG 도 혼자 뒤늦게 나타났습니다.
+  //
+  // 이제는 배경과 고정 PNG 가 둘 다 준비될 때까지 아무것도 바꾸지 않고,
+  // 준비되면 배경·고정 PNG·글자색·막을 한 번에 보여 줍니다. 디어데이와 같은 동작입니다.
+  // 내려받기 자체는 미루지 않습니다. 주소는 바로 붙이고 보이기만 잡아 둡니다.
+  // 첫 화면에서만 잡습니다. 배너를 넘길 때는 잡지 않습니다.
+  var HERO_HOLD_MS = 7000;
+
+  function isHeroVideo(el) {
+    return String(el && el.tagName || '').toLowerCase() === 'video';
+  }
+
+  function heroMediaReady(el) {
+    if (!el) return true;
+    if (isHeroVideo(el)) return el.readyState >= 2;        // 첫 프레임까지 왔는가
+    return !!(el.complete && el.naturalWidth > 0);
+  }
+
+  // 목록이 다 준비되면 done(하나라도성공) 을 부릅니다.
+  // 제한 시간이 지나도 안 오면 onTimeout() 만 부릅니다 — 받은 만큼만 보여 주고,
+  // 글자색·막은 그대로 둡니다. 나중에 늦게 도착하면 그때 done 이 불립니다.
+  function whenHeroMediaReady(list, done, onTimeout) {
+    var targets = (list || []).filter(Boolean);
+    if (!targets.length) { done(true); return; }
+    var left = 0, ok = 0, fired = false;
+    var check = function () {
+      if (fired || left > 0) return;
+      fired = true;
+      done(ok > 0);
+    };
+    targets.forEach(function (el) {
+      if (heroMediaReady(el)) { ok += 1; return; }
+      left += 1;
+      var types = isHeroVideo(el) ? ['loadeddata', 'canplay', 'playing', 'error'] : ['load', 'error'];
+      var once = function (e) {
+        var failed = !!(e && e.type === 'error');
+        if (!failed && !heroMediaReady(el)) return;        // 아직 첫 프레임 전이면 계속 기다립니다
+        types.forEach(function (type) { el.removeEventListener(type, once); });
+        if (!failed) ok += 1;
+        left -= 1;
+        check();
+      };
+      types.forEach(function (type) { el.addEventListener(type, once); });
+    });
+    check();
+    if (!fired && onTimeout) {
+      global.setTimeout(function () { if (!fired) onTimeout(); }, HERO_HOLD_MS);
+    }
+  }
+
   async function renderHero() {
     var hero = document.getElementById('hero');
     if (!hero) return;
@@ -395,20 +449,16 @@
     });
     var shouldRenderManagedSlides = slides && (hasManagedMedia || banners.length > 1);
 
+    var heroReleased = false;
+    var heroApplySeq = 0;      // 잡아두는 동안 배너가 바뀌면 옛 기다림은 버립니다
+    var autoStarted = false;   // 자동 전환은 첫 화면이 풀린 뒤에 시작합니다
+
     function applyBanner(index) {
       var item = banners[index] || banners[0];
-      // 배경 밝기 — 배너마다 .hero 와 .nav 의 글자·단추 색을 바꿉니다.
-      var isLight = item.backgroundTone === 'light';
-      hero.classList.toggle('tone-light', isLight);
-      var navBar = document.getElementById('nav') || document.querySelector('.nav');
-      if (navBar) navBar.classList.toggle('tone-light', isLight);
+      var seq = ++heroApplySeq;
       // 문구·단추 자리 — 관리자에서 고르지 않았으면 아무것도 바꾸지 않습니다.
       if (global.BannerLayout) global.BannerLayout.apply(hero, item);
-      // 그라데이션 막 — 끄면 사진이 그대로 보입니다.
-      if (scrim) {
-        scrim.style.background = overlayGradient(item.overlayColor);
-        scrim.style.opacity = item.overlayEnabled === false ? '0' : '1';
-      }
+      // 배경 밝기(글자색)·그라데이션 막·단추색은 아래 applyLook 에서 한꺼번에 합니다.
       // 고정 PNG — 배경 위, 그라데이션 막 아래. 배경 확대 움직임을 따라가지 않습니다.
       // 비율은 그대로 두고 히어로 칸 안에 들어가게 맞춥니다(object-fit:contain).
       var pinSrc = resolvePublicMediaUrl(item.fixedImage);
@@ -447,9 +497,8 @@
         if (rich && copy.subtitleHtml) rich.set(subtitle, copy.subtitleHtml, copy.subtitle);
         else if (copy.subtitle) subtitle.textContent = copy.subtitle;
       }
-      // 직접 지정한 색이 있으면 그 색으로, 비어 있으면 배경 밝기 기본값 그대로.
-      applyTextColor(title, item.titleColor);
-      applyTextColor(subtitle, item.subtitleColor);
+      // 직접 지정한 색은 applyLook 에서 넣습니다(로딩 화면에 먼저 깔리면 글자가 안 보입니다).
+      var ctaColors = [];
       // 단추는 세 저장소가 함께 쓰는 banner-cta.js 가 맞춥니다.
       // 예전에는 페이지에 이미 있는 두 번째 링크를 고쳐 쓰기만 해서, 단추가
       // 하나뿐인 페이지에서는 관리자에서 2차를 켜도 나오지 않았습니다.
@@ -457,7 +506,7 @@
       if (global.BannerCta && ctaBox) {
         global.BannerCta.apply(ctaBox, item, {
           resolveUrl: normalizeManagedLink,
-          applyColor: applyCtaColor,
+          applyColor: function (el, textColor, bgColor) { ctaColors.push([el, textColor, bgColor]); },
           fallbackPrimaryUrl: primaryUrlFallback,
           fallbackSecondaryUrl: secondaryUrlFallback,
           secondaryClass: 'btn ghost'
@@ -492,6 +541,52 @@
       if (counter) {
         counter.textContent = String(index + 1).padStart(2, '0') + ' / ' + String(banners.length).padStart(2, '0');
       }
+
+      // 겉모습 — 배경 밝기(글자색), 그라데이션 막, 직접 지정한 글자·단추 색.
+      function applyLook() {
+        var isLight = item.backgroundTone === 'light';
+        hero.classList.toggle('tone-light', isLight);
+        var navBar = document.getElementById('nav') || document.querySelector('.nav');
+        if (navBar) navBar.classList.toggle('tone-light', isLight);
+        if (scrim) {
+          scrim.style.background = overlayGradient(item.overlayColor);
+          scrim.style.opacity = item.overlayEnabled === false ? '0' : '1';
+        }
+        applyTextColor(title, item.titleColor);
+        applyTextColor(subtitle, item.subtitleColor);
+        ctaColors.forEach(function (row) { applyCtaColor(row[0], row[1], row[2]); });
+      }
+
+      if (heroReleased) {
+        applyLook();
+        return;
+      }
+      // 첫 화면 — 배경과 고정 PNG 가 둘 다 준비되면 한 번에 보여 줍니다.
+      var activeSlide = shouldRenderManagedSlides
+        ? slides.querySelectorAll('.slide')[index]
+        : null;
+      var bgMedia = activeSlide ? activeSlide.querySelector('video, img') : null;
+      whenHeroMediaReady([bgMedia, (pin && pinSrc) ? pin : null], function (anyLoaded) {
+        if (seq !== heroApplySeq) return;
+        heroReleased = true;
+        heroBox.classList.remove('hero-hold');
+        startAutoOnce();
+        // 배경도 고정 PNG 도 못 받았으면 지금 화면(그라데이션 + 진한 글씨) 그대로 둡니다.
+        if (!anyLoaded) return;
+        applyLook();
+      }, function () {
+        if (seq !== heroApplySeq) return;
+        // 7초가 지났습니다. 받은 만큼은 보여 주되 글자색·막은 아직 바꾸지 않습니다.
+        // 늦게라도 도착하면 위 함수가 그때 불려서 한 번에 맞춰집니다.
+        heroBox.classList.remove('hero-hold');
+        startAutoOnce();
+      });
+    }
+
+    function startAutoOnce() {
+      if (autoStarted) return;
+      autoStarted = true;
+      startAuto();
     }
 
     if (shouldRenderManagedSlides) {
@@ -644,8 +739,9 @@
       }, { passive: true });
     }
 
+    heroBox.classList.add('hero-hold');
+    // 자동 전환은 첫 화면이 풀린 뒤에 시작합니다(잡아둔 사이에 배너가 넘어가지 않게).
     applyBanner(0);
-    startAuto();
     if (shouldRenderManagedSlides) preloadDeferredHeroSlides(slides);
   }
 

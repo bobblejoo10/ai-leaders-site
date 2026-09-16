@@ -277,6 +277,16 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .hero-scrim{ background:transparent; z-index:1;
     transition:opacity .3s ease; }
 
+  /* 로딩 중 잡아두기 — site-content-renderer.js 가 .hero-band 에 .hero-hold 를 붙였다 뗍니다.
+     배경(그림·영상)과 고정 PNG 가 둘 다 준비될 때까지 감춰 두었다가 한 번에 보여 줍니다.
+     첫 화면에서만 잡습니다. 배너를 넘길 때는 잡지 않습니다.
+     7초 안에 안 오면 그냥 뗍니다(시간은 site-content-renderer.js 의 HERO_HOLD_MS 한 곳). */
+  .slides,.hero-pin,.hero-edge,.hero-frost{ transition:opacity .35s ease; }
+  .hero-band.hero-hold .slides,
+  .hero-band.hero-hold .hero-pin,
+  .hero-band.hero-hold .hero-edge,
+  .hero-band.hero-hold .hero-frost{ opacity:0; }
+
   /* 좌우 여백 채우기 — 칸과 층은 banner-layout.js 가 만들고 그립니다.
      늘린 층(.hero-edge)은 여백까지만 깔고 원본을 덮지 않습니다.
      서리(.hero-frost)만 여백 전체를 지나 원본 쪽으로 넘어가고, 그 구간에서 풀립니다.
@@ -4013,7 +4023,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <script src="/assets/home-featured-renderer.js?v=20260729-instructor-sort-1"></script>
 <script src="/assets/rich-text.js?v=20260911-size-1"></script>
 <script src="/assets/banner-cta.js?v=20260911-cta-1"></script>
-<script src="/assets/site-content-renderer.js?v=20260914-fit-1"></script>
+<script src="/assets/site-content-renderer.js?v=20260916-hold-1"></script>
 <script src="/assets/reviews-renderer.js?v=20260914-review-1"></script>
 <script>
 CourseHomeFeaturedRenderer.render({ limit: 8 });
