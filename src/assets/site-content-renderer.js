@@ -484,8 +484,13 @@
         var fallbackClass = ' s' + ((index % 4) + 1);
         var eager = index === 0;
         if (banner.videoUrl) {
-          return '<div class="slide' + fallbackClass + active + '"><video class="hero-bg-img" muted playsinline loop preload="' + (eager ? 'auto' : 'none') + '" '
-            + (eager ? 'src' : 'data-src') + '="' + escapeHtml(resolvePublicMediaUrl(banner.videoUrl)) + '"></video></div>';
+          // 배너에 올린 그림이 있으면 영상이 뜨기 전에 보여줄 그림(poster)으로 씁니다.
+          // 디어데이는 예전부터 이렇게 하고 있었는데(hero-banner.js) 리더스만 빠져 있어서,
+          // 영상 배너일 때 영상이 받아질 때까지 파란 바탕만 보였습니다.
+          var posterSrc = preferredHeroImage(banner);
+          return '<div class="slide' + fallbackClass + active + '"><video class="hero-bg-img" muted playsinline loop preload="' + (eager ? 'auto' : 'none') + '"'
+            + (posterSrc ? ' poster="' + escapeHtml(posterSrc) + '"' : '')
+            + ' ' + (eager ? 'src' : 'data-src') + '="' + escapeHtml(resolvePublicMediaUrl(banner.videoUrl)) + '"></video></div>';
         }
         var desktop = resolvePublicMediaUrl(banner.desktopImage || banner.mobileImage);
         var mobile = resolvePublicMediaUrl(banner.mobileImage || banner.desktopImage);
