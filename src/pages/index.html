@@ -240,7 +240,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .slide{ position:absolute; inset:0; opacity:0; transition:opacity .9s ease; }
   .slide.active{ opacity:1; }
   .hero-loading{ display:flex; align-items:center; justify-content:center; background:#0d1b2f; }
-  .hero-spinner{ width:44px; height:44px; border:4px solid rgba(255,255,255,.25); border-top-color:#fff; border-radius:50%; animation:heroSpin .8s linear infinite; }
+  /* 도는 동그라미는 감춥니다. 예전에는 파란 빈 화면이라 뭔가 돌고 있다는 표시가 필요했는데,
+     이제 브랜드 바탕과 문구가 바로 보여서 표시가 필요 없고 문구와 겹치기만 했습니다. */
+  .hero-spinner{ display:none; }
   @keyframes heroSpin{ to{ transform:rotate(360deg); } }
   /* 배경 확대 — 관리자 [배경 확대] 값입니다. 100% 면 animation 이 제자리라 안 움직입니다.
      전에는 여기 7초 108% 와 아래쪽 22초 112% 두 벌이 박혀 있었고, 디어데이·미리보기에는
@@ -256,9 +258,17 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .slide.s2{ background:repeating-linear-gradient(135deg,#0a63ff 0 2px,#0153c7 2px 26px); }
   .slide.s3{ background:radial-gradient(100% 100% at 20% 100%, #2f86ff, #014ec0 55%); }
   .slide.s4{ background:linear-gradient(180deg,#0a78ff,#0149b8); }
+  /* 자료를 불러오는 동안 보이는 바탕 — 브랜드 배경입니다.
+     디어데이 [브랜드 소개] 칸에 쓰는 그라데이션과 같은 결이고 색만 파랑입니다.
+     그림 파일을 쓰지 않아 페이지가 무거워지지 않습니다.
+     s1~s4 보다 뒤에 두어야 이깁니다. */
+  .slide.hero-loading{ background:radial-gradient(125% 125% at 50% 20%, #E6F0FF 8%, #D1E3FF 28%, #F1F6FF 50%, #ffffff 75%, #F1F6FF 100%); }
   /* 자리·폭은 위 .slides,.hero-scrim 규칙이 정합니다. 여기서는 색만 정합니다.
      inset:0 을 다시 쓰면 그 폭 지정이 덮여서 배경만 넓어지고 막은 안 넓어집니다. */
-  .hero-scrim{ background:linear-gradient(180deg, rgba(2,22,66,.34) 0%, rgba(2,22,66,.14) 40%, rgba(1,18,58,.66) 100%); z-index:1;
+  /* 막의 색·켜짐은 관리자 [그라데이션 씌우기] 가 정합니다(site-content-renderer 가 붙여 줍니다).
+     자료가 오기 전에 미리 덮어 두면, 꺼 둔 배너에서도 로딩 동안 막이 보였습니다.
+     그래서 기본은 투명으로 두고 설정이 온 뒤에만 덮습니다. */
+  .hero-scrim{ background:transparent; z-index:1;
     transition:opacity .3s ease; }
 
   /* 좌우 여백 채우기 — 칸과 층은 banner-layout.js 가 만들고 그립니다.
@@ -2211,7 +2221,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="slide s1 active hero-loading" aria-hidden="true"><span class="hero-spinner"></span></div>
   </div>
   <div class="hero-scrim" aria-hidden="true"></div>
-<header class="hero" id="hero">
+<!-- tone-light : 지금 켜 둔 배너의 [배경 밝기] 값입니다. 자료가 오기 전에도 같은 색으로 보이게 미리 붙여 둡니다.
+     관리자에서 배경 밝기를 [어두운 배경] 으로 바꾸면 이 자리도 tone-light 를 빼 주세요. -->
+<header class="hero tone-light" id="hero">
 
   <div class="hero-inner">
     <div class="container">

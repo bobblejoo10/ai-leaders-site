@@ -136,7 +136,9 @@
   }
 
   var NAV_HTML = ''
-    + '<nav class="nav" id="nav">'
+    // tone-light : 지금 켜 둔 배너의 [배경 밝기] 입니다. 자료가 오기 전 로고·글자가
+    // 옅은 바탕에 묻히지 않게 미리 붙여 둡니다. site-content-renderer 가 곧 다시 맞춥니다.
+    + '<nav class="nav tone-light" id="nav">'
     + '  <div class="container">'
     + '    <a class="brand" href="/" aria-label="AI 리더스 협회 홈">'
     + '      <img class="logo logo-white" src="/images/logo-white.png" alt="AI 리더스 협회"/>'
