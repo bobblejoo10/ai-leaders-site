@@ -84,9 +84,25 @@
     document.body.appendChild(btn);
   }
 
+  // 관리자 [홈페이지 관리] → [상담 버튼] 에서 켜야 나옵니다. 기본은 꺼짐입니다.
+  // 못 물어보거나 실패하면 안 보여줍니다 — 잠깐 떴다 사라지는 것보다 낫습니다.
+  function isEnabled() {
+    var api = window.AiLeadersSupabase;
+    if (!api || typeof api.selectRows !== 'function') return Promise.resolve(false);
+    return api.selectRows('sites', { select: 'id,chat_button_enabled' }).then(function (rows) {
+      var siteId = typeof api.currentSiteId === 'function' ? api.currentSiteId() : '';
+      var row = (rows || []).filter(function (item) { return item && item.id === siteId; })[0];
+      return !!(row && row.chat_button_enabled === true);
+    }).catch(function () { return false; });
+  }
+
+  function start() {
+    isEnabled().then(function (on) { if (on) build(); });
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', build);
+    document.addEventListener('DOMContentLoaded', start);
   } else {
-    build();
+    start();
   }
 })();
