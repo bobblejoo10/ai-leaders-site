@@ -49,6 +49,14 @@
     return path === '' || path === '/index.html';
   }
 
+  // 맨 위에서는 TOP 단추를 감춥니다. 디어데이(top-fab.js)와 같은 규칙입니다 —
+  // 첫 화면(히어로)을 지나야 나옵니다. 히어로가 없는 화면에서는 늘 보입니다.
+  function isPastHero() {
+    var hero = document.querySelector('.main-hero, .hero, .hero-detail, .page-head');
+    if (!hero) return true;
+    return global.scrollY >= hero.offsetHeight - 60;
+  }
+
   function isHeroVisible() {
     var hero = document.querySelector('.main-hero, .hero');
     if (!hero) return false;
@@ -89,6 +97,7 @@
 
       root.classList.toggle('is-visible', desktopVisible);
       root.classList.toggle('is-scrolled', scrolled);
+      root.classList.toggle('is-top-ready', isPastHero());
       socialLinks.forEach(function (link) {
         link.tabIndex = linksVisible ? 0 : -1;
       });

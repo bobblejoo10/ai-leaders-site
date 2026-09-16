@@ -295,6 +295,13 @@
     transform: none;
   }
 
+  /* 첫 화면을 지나기 전에는 TOP 을 감춥니다. 디어데이와 같은 규칙입니다.
+     opacity 가 아니라 display 로 빼야 [+] 단추가 그 자리로 내려옵니다
+     (이 칸은 아래에 붙어 있는 세로 묶음이라 빠진 만큼 줄어듭니다). */
+  .quick-links:not(.is-top-ready) .q-top {
+    display: none;
+  }
+
   .quick-links .q-top:hover,
   .quick-links .q-top:focus-visible {
     background: #000;
