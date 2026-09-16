@@ -224,7 +224,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     --hero-media-ar:max(var(--hero-base-ar), var(--hero-src-ar)); --hero-hw:calc(1 / var(--hero-base-ar));
     --hero-w:min(100%, calc(var(--hero-avail) * var(--hero-base-ar)));
     --hero-h:calc(var(--hero-w) / var(--hero-base-ar));
-    position:relative; overflow:hidden; background:#061020; }
+    position:relative; overflow:hidden;
+    /* 띠 바탕 — 히어로 칸이 화면보다 좁을 때 좌우 여백에 보이는 색입니다.
+       불러오는 동안에는 이 색이 여백까지 덮습니다. 그림·영상이 붙은 뒤에는
+       여백을 가장자리 늘리기(banner-layout.js)가 채우므로 가려집니다. */
+    background:radial-gradient(125% 125% at 50% 20%, #E6F0FF 8%, #D1E3FF 28%, #F1F6FF 50%, #ffffff 75%, #F1F6FF 100%); }
   /* 배경 묶음과 막 — 높이는 늘 히어로와 같고, 폭만 원본 비만큼 넓힙니다.
      폭을 aspect-ratio 로 잡았더니, 화면이 좁아 max-width 에 걸릴 때 높이가
      비를 맞추려고 같이 줄어서 배경이 히어로보다 납작해졌습니다(실측).
@@ -235,7 +239,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
      배경이 천천히 커졌다 줄어드는 움직임(bg_zoom)은 .slide 에 걸려 있어서 여기는 안 따라갑니다. */
   .hero-pin{ z-index:0; object-fit:contain; pointer-events:none; }
   /* 등록된 것이 없을 때 보이는 바탕입니다. 예전에 .hero 가 갖고 있던 그 색입니다. */
-  .slides{ background:linear-gradient(165deg,#0a4fd0,#0172fe 55%,#0a63ff); }
+  /* 안쪽은 비워 둡니다. 띠(.hero-band)의 그라데이션이 여백부터 히어로 칸까지
+     끊기지 않고 이어지게 하려는 것입니다. 등록된 것이 없는 배너는 .slide.s1~s4 가 채웁니다. */
+  .slides{ background:transparent; }
   .slides{ z-index:0; }
   .slide{ position:absolute; inset:0; opacity:0; transition:opacity .9s ease; }
   .slide.active{ opacity:1; }
@@ -262,7 +268,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
      디어데이 [브랜드 소개] 칸에 쓰는 그라데이션과 같은 결이고 색만 파랑입니다.
      그림 파일을 쓰지 않아 페이지가 무거워지지 않습니다.
      s1~s4 보다 뒤에 두어야 이깁니다. */
-  .slide.hero-loading{ background:radial-gradient(125% 125% at 50% 20%, #E6F0FF 8%, #D1E3FF 28%, #F1F6FF 50%, #ffffff 75%, #F1F6FF 100%); }
+  .slide.hero-loading{ background:transparent; }
   /* 자리·폭은 위 .slides,.hero-scrim 규칙이 정합니다. 여기서는 색만 정합니다.
      inset:0 을 다시 쓰면 그 폭 지정이 덮여서 배경만 넓어지고 막은 안 넓어집니다. */
   /* 막의 색·켜짐은 관리자 [그라데이션 씌우기] 가 정합니다(site-content-renderer 가 붙여 줍니다).
